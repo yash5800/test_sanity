@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 import { uploadToSanity } from '@/sanity/lib/upload'
 import React, { useState } from 'react'
@@ -33,10 +34,16 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
           console.log("revived : ",result);
           setUploading(false);
         }
-        catch(e){
-          alert("File upload failed");
+        catch (e: unknown) {
+          console.error("File upload error:", e); 
+          if (e instanceof Error) {
+            alert(`File upload failed: ${e.message}`);
+          } else {
+            alert("File upload failed due to an unknown error");
+          }
           setUploading(false);
         }
+        
   }
 
   return (

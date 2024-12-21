@@ -1,5 +1,4 @@
 import React from 'react'
-import Footer from '../components/Footer'
 import Key from '../components/Key'
 
 const page = async () => {

@@ -2,12 +2,9 @@ import React from 'react'
 import Hero from '../components/Hero'
 import Footer from '../components/Footer'
 
-type Params ={
-  children:React.ReactNode,
-  param:{id:string}
-}
 
-const layout:React.FC<Params> =async ({children}) => {
+
+const layout =async ({children}:{children:React.ReactNode}) => {
 
   return (
      <div className='flex flex-col h-screen justify-between items-center'>
