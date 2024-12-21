@@ -1,7 +1,13 @@
 import UploadCard from '@/app/components/UploadCard'
 import UserFiles from '@/app/components/UserFiles'
 import { fetchTotalStorageUsed } from '@/sanity/lib/Store'
+import { Metadata } from 'next';
 import React from 'react'
+
+export const metadata: Metadata = {
+  title: "Files" ,
+  description: "SanityHub to Store",
+};
 
 const page = async ({params}:{params:Promise<{id:string}>}) => {
   const key = (await params).id
