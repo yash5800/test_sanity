@@ -14,8 +14,43 @@
   }
 }
 
+*{
+  transition: color .1s;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+#file{
+  display: none;
+}
+
+@layer utilities{
+  .mycard{
+    @apply flex flex-col justify-center items-center gap-10 text-black bg-white rounded-md w-[400px] h-[300px] max-xl:w-[350px] max-xl:h-[250px] max-sm:w-[300px] max-sm:h-[200px] max-md:w-[350px] max-md:h-[250px] max-lg:w-[400px] max-lg:h-[300px]  mt-auto;
+  }
+  .mycard1{
+    @apply flex flex-col justify-center items-center gap-10 text-black bg-gradient-to-r from-pink-600 to-purple-600 rounded-md w-[400px] h-[300px] max-xl:w-[350px] max-xl:h-[250px] max-sm:w-[300px] max-sm:h-[200px] max-md:w-[350px] max-md:h-[250px] max-lg:w-[400px] max-lg:h-[300px]  mt-auto;
+  }
+  .myinput{
+    @apply bg-black rounded-lg p-3 text-white font-semibold outline-none;
+  }
+  .mybut{
+    @apply bg-black text-white rounded-md px-3 py-2 hover:bg-blue-500 font-semibold;
+  }
+  .mybut3{
+    @apply bg-black text-white rounded-md px-3 py-2 hover:bg-white hover:bg-gradient-to-r from-blue-600 to-green-600 transition-colors font-semibold;
+  }
+  .mybut2{
+    @apply bg-black text-white rounded-md px-3 py-2 hover:bg-green-500 hover:text-black font-semibold;
+  }
+  .mybut1{
+    @apply bg-black text-white rounded-md px-3 py-2 hover:bg-red-500 hover:text-black font-semibold;
+  }
+  .card_grid {
+    @apply grid md:grid-cols-3 sm:grid-cols-2 gap-5;
+}
 }
