@@ -55,7 +55,7 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
          onChange={handleFileChange}
        />
        <button className='mybut3' onClick={handleOnClick}>
-         {isUploading?"Uploading":"Choose and Upload"}
+         {isUploading?"Uploading..":"Choose and Upload"}
        </button>
        
     </div>

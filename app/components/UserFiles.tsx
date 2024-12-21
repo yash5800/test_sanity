@@ -3,6 +3,7 @@ import { QUERY } from '@/sanity/lib/query'
 import React from 'react'
 import DeleteBut from './DeleteBut'
 import Image from 'next/image'
+import DownloadBut from './DownloadBut'
 
 const UserFiles = async({uploadKey}:{uploadKey:string}) => {
 
@@ -24,13 +25,7 @@ interface ItemContain{
             <div key={index} className='flex flex-col gap-5 w-[280px] h-[180px] bg-white rounded-md text-black p-3 text-center'>
                <h1 className='text-lg font-semibold'>{item.filename}</h1>
                <div className='flex justify-around items-center'>
-                   <a
-                    href={item.fileUrl}
-                    download={item.filename}
-                    className='text-green-500 mybut2'
-                   >
-                    Download
-                   </a>
+                   <DownloadBut file={{filename:item.filename,fileUrl:item.fileUrl}} />
                    <DeleteBut fileId={item._id} />
                    
                </div>
@@ -46,7 +41,7 @@ interface ItemContain{
             </div>
           )))
           :(
-            <h1 className='text-slate-500'>Looks Like Empty</h1>
+            <h1 className='text-slate-500 w-screen text-center'>Looks Like Empty</h1>
           )
         }
       </div>
