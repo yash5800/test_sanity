@@ -9,12 +9,12 @@ const page = async ({params}:{params:Promise<{id:string}>}) => {
   return (
     <main className='flex flex-col mt-5 justify-center items-center'>
        <section>
-          <h1 className='max-sm:text-base text-xl font-sans m-3 text-gray-600 '>Current Server Storage <span className='text-green-800 font-mono'>{fetchTotalStorageUsed()} MB</span></h1>
+          <h1 className='max-sm:text-base text-xl font-sans mt-3 mb-3 text-gray-600 '>Current Server Storage <span className='text-green-800 font-mono'>{fetchTotalStorageUsed()} MB</span></h1>
        </section>
        <section>
            <UploadCard uploadKey={key}/>
        </section>
-       <section>
+       <section >
            <UserFiles uploadKey={key}/>
        </section>
     </main>
