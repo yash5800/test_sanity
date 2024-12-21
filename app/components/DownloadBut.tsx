@@ -7,7 +7,7 @@ const DownloadBut = ({file}:{file:{filename:string,fileUrl:string}}) => {
          <a
          href={file.fileUrl}
          download={file.filename}
-         onClick={()=>setload(true)}
+         onClick={()=>setload(false)}
          target='_blank'
          className='text-green-500 mybut2'
          >
