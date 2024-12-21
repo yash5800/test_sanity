@@ -13,7 +13,9 @@ const Key = () => {
     <div className='mycard'>
           <h1 className='text-2xl font-bold'>Login with key <span className='hover:bg-slate-600 rounded-md'
           >🔐</span></h1>
-          <Form action={`/user/${key}`} onSubmit={()=>setload(true)} >
+          <Form action={(key!=="" && key.length>=4)?`/user/${key}`:'/'} onSubmit={()=>{
+            setload(true)
+          }}>
             <div className='flex flex-col gap-5 justify-center'>
               <input 
                  type="text" 
