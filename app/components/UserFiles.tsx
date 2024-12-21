@@ -23,7 +23,7 @@ interface ItemContain{
         {post.length>0?
           (post.map((item:ItemContain,index:number)=>(
             <div key={index} className='flex flex-col gap-5 w-[280px] h-[180px] bg-white rounded-md text-black p-3 text-center'>
-               <h1 className='text-lg font-semibold'>{item.filename}</h1>
+               <h1 className='text-lg font-semibold truncate'>{item.filename}</h1>
                <div className='flex justify-around items-center'>
                    <DownloadBut file={{filename:item.filename,fileUrl:item.fileUrl}} />
                    <DeleteBut fileId={item._id} />
