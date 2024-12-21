@@ -19,6 +19,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -31,12 +32,37 @@ body {
   display: none;
 }
 
+.mycard1{
+   animation: shift infinite ease-in-out 15s;
+}
+.mycard1:hover{
+  box-shadow: 0 0 8px 1px rgb(166, 0, 255);
+}
+.mybut3:hover{
+  box-shadow:3px 3px 10px 1px rgb(255, 255, 255,0.2), 3px 3px 10px 1px rgb(0, 0, 0,0.7);
+}
+
+@keyframes shift{
+  0%{
+    background: linear-gradient(90deg,rgb(255, 0, 204),rgb(166, 0, 255));
+  }
+  25%{
+    background: linear-gradient(-45deg,rgb(166, 0, 255),rgb(255, 0, 204));
+  }
+  50%{
+    background: linear-gradient(45deg,rgb(166, 0, 255),rgb(255, 0, 204));
+  }
+  100%{
+    background: linear-gradient(90deg,rgb(255, 0, 204),rgb(166, 0, 255));
+  }
+}
+
 @layer utilities{
   .mycard{
     @apply flex flex-col justify-center items-center gap-10 text-black bg-white rounded-md w-[400px] h-[300px] max-xl:w-[350px] max-xl:h-[250px] max-sm:w-[300px] max-sm:h-[200px] max-md:w-[350px] max-md:h-[250px] max-lg:w-[400px] max-lg:h-[300px]  mt-auto;
   }
   .mycard1{
-    @apply flex flex-col justify-center items-center gap-10 text-black bg-gradient-to-r from-pink-600 to-purple-600 rounded-md w-[400px] h-[300px] max-xl:w-[350px] max-xl:h-[250px] max-sm:w-[300px] max-sm:h-[200px] max-md:w-[350px] max-md:h-[250px] max-lg:w-[400px] max-lg:h-[300px]  mt-auto;
+    @apply flex flex-col justify-center items-center gap-10 text-black  rounded-md w-[400px] h-[300px] max-xl:w-[350px] max-xl:h-[250px] max-sm:w-[300px] max-sm:h-[200px] max-md:w-[350px] max-md:h-[250px] max-lg:w-[400px] max-lg:h-[300px]  mt-auto;
   }
   .myinput{
     @apply bg-black rounded-lg p-3 text-white font-semibold outline-none;

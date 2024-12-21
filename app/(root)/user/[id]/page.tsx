@@ -15,7 +15,7 @@ const page = async ({params}:{params:Promise<{id:string}>}) => {
   return (
     <main className='flex flex-col mt-5 justify-center items-center'>
        <section>
-          <h1 className='max-sm:text-base text-xl font-sans mt-3 mb-3 text-gray-600 '>Current Server Storage <span className='text-green-800 font-mono'>{fetchTotalStorageUsed()} MB</span></h1>
+          <h1 className='max-sm:text-base text-xl font-sans mt-3 mb-3 text-gray-300 opacity-60 hover:opacity-100'>Current Server Storage <span className='text-green-500 font-mono'>{fetchTotalStorageUsed()} MB</span></h1>
        </section>
        <section>
            <UploadCard uploadKey={key}/>

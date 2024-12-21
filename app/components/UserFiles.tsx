@@ -20,7 +20,7 @@ interface ItemContain{
   return (
     <>
        <div className='text-gray-600 font-semibold text-2xl mt-16 mb-16'>
-         <h1 className='ml-16' >{`${uploadKey} > `}<span className='underline'>Files</span></h1>
+         <h1 className='ml-16'>{`${uploadKey} > `}<span className='underline text-gray-400 hover:text-gray-600'>Files</span></h1>
        </div>
       <div className='card_grid mt-5'>
         {post.length>0?
