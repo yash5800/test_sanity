@@ -1,3 +1,4 @@
+import Ativee from '@/app/components/Ativee';
 import UploadCard from '@/app/components/UploadCard'
 import UserFiles from '@/app/components/UserFiles'
 import { Skeleton } from '@/app/components/ui/skeleton';
@@ -16,12 +17,7 @@ const page = async ({params}:{params:Promise<{id:string}>}) => {
   return (
     <main className='flex flex-col mt-5 justify-center items-center'>
        <section>
-          <div className='flex justify-center items-center gap-2 p-2 mt-3 mb-3'>
-            <h1 className='max-sm:text-base text-xl font-sans text-gray-500 '>Current Server Storage</h1>
-            <Suspense fallback={<Skeleton className='store_skeleton_tag'/>}>
-             <span className='text-green-600 font-mono'>{fetchTotalStorageUsed()} MB</span>
-            </Suspense>
-          </div>
+          <Ativee />
        </section>
        <section>
            <UploadCard uploadKey={key}/>

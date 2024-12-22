@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import type { Config } from "tailwindcss";
 
 export default {
@@ -9,6 +10,22 @@ export default {
   ],
   theme: {
   	extend: {
+			animation:{
+           tilt:"tilt 20s infinite linear"
+			},
+			keyframes:{
+          tilt:{
+						"0%,50%,100%":{
+							transform: "rotate(0deg)"
+						},
+						"25%":{
+							transform: "rotate(0.5deg)"
+						},
+						"75%":{
+							transform: "rotate(-0.5deg)"
+						}
+					}
+			},
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
