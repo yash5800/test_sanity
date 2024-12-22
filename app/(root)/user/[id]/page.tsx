@@ -1,8 +1,9 @@
 import UploadCard from '@/app/components/UploadCard'
 import UserFiles from '@/app/components/UserFiles'
+import { Skeleton } from '@/components/ui/skeleton';
 import { fetchTotalStorageUsed } from '@/sanity/lib/Store'
 import { Metadata } from 'next';
-import React from 'react'
+import React, { Suspense } from 'react'
 
 export const metadata: Metadata = {
   title: "Files" ,
@@ -15,7 +16,12 @@ const page = async ({params}:{params:Promise<{id:string}>}) => {
   return (
     <main className='flex flex-col mt-5 justify-center items-center'>
        <section>
-          <h1 className='max-sm:text-base text-xl font-sans mt-3 mb-3 text-gray-300 opacity-60 hover:opacity-100'>Current Server Storage <span className='text-green-500 font-mono'>{fetchTotalStorageUsed()} MB</span></h1>
+          <div className='flex justify-center items-center gap-2 p-2 mt-3 mb-3'>
+            <h1 className='max-sm:text-base text-xl font-sans text-gray-500 '>Current Server Storage</h1>
+            <Suspense fallback={<Skeleton className='store_skeleton_tag'/>}>
+             <span className='text-green-600 font-mono'>{fetchTotalStorageUsed()} MB</span>
+            </Suspense>
+          </div>
        </section>
        <section>
            <UploadCard uploadKey={key}/>
@@ -28,8 +34,11 @@ const page = async ({params}:{params:Promise<{id:string}>}) => {
                 <a href='#files'><span     className='text-gray-600 hover:underline     hover:text-gray-400'>Files</span></a>
              </h1>
            </div>
-           <div id="files" className='rounded-xl max-sm:p-5 max-xl:p-10 p-20 mb-20 text-center'>
-              <UserFiles uploadKey={key}/>
+           <div id="files" className='rounded-xl max-sm:p-5 max-xl:p-10 p-20 mb-20 text-center relative'>
+           <Suspense fallback={<Skeleton className='file_skeleton'/>}>
+             <UserFiles uploadKey={key}/>
+           </Suspense>
+             
            </div>
        </section>
     </main>
