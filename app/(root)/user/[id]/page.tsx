@@ -28,7 +28,7 @@ const page = async ({params}:{params:Promise<{id:string}>}) => {
                 <a href='#files'><span     className='text-gray-600 hover:underline     hover:text-gray-400'>Files</span></a>
              </h1>
            </div>
-           <div id="files" className='rounded-xl max-sm:p-5 max-xl:p-10 p-20 mb-20'>
+           <div id="files" className='rounded-xl max-sm:p-5 max-xl:p-10 p-20 mb-20 text-center'>
               <UserFiles uploadKey={key}/>
            </div>
        </section>

@@ -20,7 +20,7 @@ interface ItemContain{
   return (
     <>
 
-      <div className='card_grid mt-5'>
+      <div className={`${post.length>0&&'card_grid'} mt-5`}>
         {post.length>0?
           (post.map((item:ItemContain,index:number)=>(
             <div key={index} className='flex flex-col gap-5 w-[280px] h-[180px] bg-white rounded-md text-black p-3 text-center'>
@@ -42,7 +42,7 @@ interface ItemContain{
             </div>
           )))
           :(
-            <h1 className='text-slate-500 w-screen text-center'>Looks Like Empty</h1>
+            <h1 className='text-slate-500 '>Looks Like Empty</h1>
           )
         }
       </div>
