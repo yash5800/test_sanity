@@ -27,11 +27,11 @@ const page = async ({params}:{params:Promise<{id:string}>}) => {
            <UploadCard uploadKey={key}/>
        </section>
        <section >
-           <div className='text-gray-600 font-semibold text-2xl mt-12 mb-12'>
+           <div className='text-gray-600 font-semibold text-xl mt-12 mb-12'>
              <h1 className='ml-6'>
-                <a href='../'><span     className='text-gray-600 hover:underline     hover:text-gray-400'>Home</span>{' > '}</    a>
-                <a href='#'><span     className='text-gray-600 hover:underline     hover:text-gray-400'>{`${key}`}</span>{'     > '}</a>
-                <a href='#files'><span     className='text-gray-600 hover:underline     hover:text-gray-400'>Files</span></a>
+                <a href='../'><span     className='text-gray-600 p-2.5 rounded-md hover:bg-gray-900      hover:text-gray-400'>Home</span>{' > '}</    a>
+                <a href='#'><span     className='text-gray-600 p-2.5 rounded-md hover:bg-gray-900      hover:text-gray-400'>{`${key}`}</span>{'     > '}</a>
+                <a href='#files'><span     className='text-gray-600 p-2.5 rounded-md hover:bg-gray-900    hover:text-gray-400'>Files</span></a>
              </h1>
            </div>
            <div id="files" className='rounded-xl max-sm:p-5 max-xl:p-10 p-20 mb-20 text-center relative'>
