@@ -15,6 +15,7 @@ const Key = () => {
           >🔐</span></h1>
           <Form action={(key!=="" && key.length>=4)?`/user/${key}`:'/'} onSubmit={()=>{
             setload(true)
+            if(key!=="" && key.length) setload(false)
           }}>
             <div className='flex flex-col gap-5 justify-center'>
               <input 

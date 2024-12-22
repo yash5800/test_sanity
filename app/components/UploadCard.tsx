@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 import { uploadToSanity } from '@/sanity/lib/upload'
 import React, { useState } from 'react'
@@ -48,7 +47,7 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
 
   return (
     <div className='mycard1'>
-       <h1 className='max-sm:text-xl text-3xl font-bold'>Select File</h1>
+       <h1 className='max-sm:text-xl text-3xl font-bold text-white'>Select File</h1>
        <input 
          id='file'
          type="file" 

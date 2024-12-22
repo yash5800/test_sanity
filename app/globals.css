@@ -32,6 +32,10 @@ body {
   display: none;
 }
 
+#files{
+  background: linear-gradient(rgb(0, 31, 0),rgb(0, 0, 0));
+}
+
 .mycard1{
    animation: shift infinite ease-in-out 15s;
 }

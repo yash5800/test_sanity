@@ -11,15 +11,21 @@ export const metadata: Metadata = {
    description: "SanityHub to Store",
  };
 
-const layout =async ({children}:{children:React.ReactNode}) => {
+interface Entity{
+   children:React.ReactNode,
+   // params?:{id:string}
+}
+
+const layout:React.FC<Entity> =async ({children}) => {
 
   return (
-     <div className='flex flex-col h-screen justify-between items-center '>
-        <Hero />
-        {children}
-        <Footer/>
-     </div>
+   <div className='flex flex-col h-screen justify-between items-center '>
+      <Hero />
+      {children}
+      <Footer/>
+   </div>
   )
+
 }
 
 export default layout
