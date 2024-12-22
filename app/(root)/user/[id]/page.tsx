@@ -2,7 +2,6 @@ import Ativee from '@/app/components/Ativee';
 import UploadCard from '@/app/components/UploadCard'
 import UserFiles from '@/app/components/UserFiles'
 import { Skeleton } from '@/app/components/ui/skeleton';
-import { fetchTotalStorageUsed } from '@/sanity/lib/Store'
 import { Metadata } from 'next';
 import React, { Suspense } from 'react'
 
