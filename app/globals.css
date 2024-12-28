@@ -34,15 +34,15 @@ body {
 }
 
 .myim{
-  animation: ima linear 2s infinite;
+  animation: ima ease-in-out 2s infinite;
 }
 
 @keyframes ima{
   0%,100%{
-    transform: translateX(0);
+    transform: translateX(0px);
   }
   50%{
-    transform: translateX(7);
+    transform: translateX(6px);
   }
 }
 
