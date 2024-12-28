@@ -1,6 +1,7 @@
 'use client'
 
 import Form from 'next/form'
+import Image from 'next/image';
 import { useState } from 'react'
 
 const Key = () => {
@@ -45,8 +46,9 @@ const Key = () => {
                 {error.key && <p className="text-red-500 text-sm ">{error.key}</p>}
                 <div 
                 className='flex justify-center'>
-                   <button type='submit' className='mybut'>
+                   <button type='submit' className='mybut flex justify-center items-center gap-2'>
                     {isload ?'wait..':"Insert"}
+                    {key && <Image src={"/move-right.png"} className='myim' alt='arrow' width={25} height={25} />}
                    </button>
                 </div>
                 
