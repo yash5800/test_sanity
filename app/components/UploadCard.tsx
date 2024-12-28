@@ -1,9 +1,11 @@
 'use client'
+import { useToast } from '@/hooks/use-toast';
 import { uploadToSanity } from '@/sanity/lib/upload'
 import React, { useState } from 'react'
 
 const UploadCard = ({uploadKey}:{uploadKey:string}) => {
   const [isUploading,setUploading] = useState(false);
+  const {toast} = useToast();
 
   console.log("current uploadKey: " + uploadKey);
 
@@ -29,16 +31,29 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
         try{
           setUploading(true);
           const result = await uploadToSanity(uploadKey,file);
-          alert("File uploaded successfully!");
+          
+          toast({
+            title:"success",
+            description:"File uploaded successfully!"
+          })
+
           console.log("revived : ",result);
           setUploading(false);
         }
         catch (e: unknown) {
           console.error("File upload error:", e); 
           if (e instanceof Error) {
-            alert(`File upload failed: ${e.message}`);
+            toast({
+              title: 'Error',
+              description : `File upload failed: ${e.message} try again later`,
+              variant:"destructive"
+            })
           } else {
-            alert("File upload failed due to an unknown error");
+            toast({
+              title: 'Error',
+              description : "File upload failed due to an unknown error",
+              variant:"destructive"
+            })
           }
           setUploading(false);
         }

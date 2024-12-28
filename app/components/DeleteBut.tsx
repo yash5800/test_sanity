@@ -1,19 +1,28 @@
 'use client'
+import { useToast } from '@/hooks/use-toast';
 import { client } from '@/sanity/lib/client';
 import React, { useState } from 'react'
 
 const DeleteBut = ({fileId}:{fileId:string}) => {
   const [isload,setload] = useState(false);
+  const {toast} = useToast();
   const deleteUploadedFile = async (fileId: string): Promise<void> => {
                                                   setload(true);
                                                    try {
                                                      const result = await client.delete(fileId); // Delete by _id
                                                      console.log('File deleted successfully:', result);
                                                      setload(false);
-                                                     alert('File deleted successfully');
+          
+                                                     toast({
+                                                      title: 'success',
+                                                      description : "File deleted successfully",
+                       
+                                                    })
                                                    } catch (error) {
-                                                     console.error('Error deleting file:', error);
-                                                     throw error;
+                                                    toast({
+                                                      title: 'Error',
+                                                      description : `Error deleting file ${error} and try again`,
+                                                    })
                                                    }
                                                  };
   return (

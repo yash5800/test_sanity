@@ -56,7 +56,7 @@ body {
     @apply bg-zinc-600 w-8 h-5 rounded-lg relative -bottom-[1.5px];
    }
   .mycard{
-    @apply flex flex-col justify-center items-center gap-10 text-black bg-white rounded-md w-[400px] h-[300px] max-xl:w-[350px] max-xl:h-[250px] max-sm:w-[300px] max-sm:h-[200px] max-md:w-[350px] max-md:h-[250px] max-lg:w-[400px] max-lg:h-[300px]  mt-auto;
+    @apply flex flex-col justify-center items-center gap-6 text-black bg-white rounded-md w-[400px] h-[300px] max-xl:w-[350px] max-xl:h-[250px] max-sm:w-[300px] max-sm:h-[200px] max-md:w-[350px] max-md:h-[250px] max-lg:w-[400px] max-lg:h-[300px]  mt-auto;
   }
   .mycard1{
     @apply flex flex-col justify-center items-center gap-10 text-black  rounded-md w-[400px] h-[300px] max-xl:w-[350px] max-xl:h-[250px] max-sm:w-[300px] max-sm:h-[200px] max-md:w-[350px] max-md:h-[250px] max-lg:w-[400px] max-lg:h-[300px]  mt-auto;
