@@ -34,7 +34,8 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
           
           toast({
             title:"success",
-            description:"File uploaded successfully!"
+            description:"File uploaded successfully!",
+            variant:"success",
           })
 
           console.log("revived : ",result);

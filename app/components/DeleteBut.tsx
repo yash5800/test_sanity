@@ -16,6 +16,7 @@ const DeleteBut = ({fileId}:{fileId:string}) => {
                                                      toast({
                                                       title: 'success',
                                                       description : "File deleted successfully",
+                                                      variant:'success'
                        
                                                     })
                                                    } catch (error) {
