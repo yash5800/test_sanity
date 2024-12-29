@@ -33,7 +33,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <img src="/im1.jpg" className="im" alt="back"/>
+        <img src="/mjy12.jpg" className="im" alt="back"/>
         {children}
         <Toaster />
       </body>
