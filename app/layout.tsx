@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/app/components/ui/toaster";
-import AdcashScript from "./components/Adcash";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,12 +29,13 @@ export default function RootLayout({
       <head>
         <meta name="google-site-verification" content="cVRStzcPjYnQMnf-gKGJqJstm5g-aJIpw6e8DvX8hsE" />
         <meta name="google-adsense-account" content="ca-pub-6889447229726755"></meta>
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6889447229726755"
+     crossOrigin="anonymous"></script>
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <img src="/mjy12.jpg" className="im" alt="back"/>
-        <AdcashScript />
         {children}
         <Toaster />
       </body>
