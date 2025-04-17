@@ -7,6 +7,10 @@ const DeleteBut = ({fileId}:{fileId:string}) => {
   const [isload,setload] = useState(false);
   const {toast} = useToast();
   const deleteUploadedFile = async (fileId: string): Promise<void> => {
+    if (!confirm("Are you sure you want to delete this file?")) {
+     setload(false);
+       return;
+     }
                                                   setload(true);
                                                    try {
                                                      const result = await client.delete(fileId); // Delete by _id
