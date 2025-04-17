@@ -7,7 +7,7 @@ const DeleteBut = ({fileId}:{fileId:string}) => {
   const [isload,setload] = useState(false);
   const {toast} = useToast();
   const deleteUploadedFile = async (fileId: string): Promise<void> => {
-    if (!confirm("Are you sure you want to delete this file?")) {
+    if (!confirm("Are you sure, wanna to delete this file?")) {
      setload(false);
        return;
      }
