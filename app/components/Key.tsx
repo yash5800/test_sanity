@@ -42,6 +42,7 @@ const Key = () => {
                  min={4}  
                  placeholder='🗝️ Key goes here' 
                  onChange={(e)=>upkey(e.target.value)}
+                 autoComplete='off'
                  required />
                 {error.key && <p className="text-red-500 text-sm ">{error.key}</p>}
                 <div 
