@@ -12,13 +12,17 @@ const AdBanner = ({
   dataAdFormat,
   dataFullWidthResponsive
 }: AdBannerProps)  => {
-  useEffect(()=>{
-    try{
-      ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
-    }catch(e){
+  useEffect(() => {
+    try {
+      interface WindowWithAds extends Window {
+        adsbygoogle?: unknown[];
+      }
+      const win = window as WindowWithAds;
+      (win.adsbygoogle = win.adsbygoogle || []).push({});
+    } catch (e) {
       console.error(e);
     }
-  },[])
+  }, [])
   return (
     <ins
       className='adsbygoogle'
