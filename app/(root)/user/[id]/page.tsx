@@ -1,3 +1,4 @@
+import AdBanner from '@/app/components/AdBanner';
 import Ativee from '@/app/components/Ativee';
 import UploadCard from '@/app/components/UploadCard'
 import UserFiles from '@/app/components/UserFiles'
@@ -15,6 +16,9 @@ const page = async ({params}:{params:Promise<{id:string}>}) => {
   console.log(key)
   return (
     <main className='flex flex-col mt-5 justify-center items-center'>
+      <section className='px-3 h-auto'>
+        <AdBanner dataAdFormat='auto' dataFullWidthResponsive={true} dataAdSlot='3186675113' />
+      </section>
        <section>
           <Ativee />
        </section>
@@ -35,6 +39,9 @@ const page = async ({params}:{params:Promise<{id:string}>}) => {
            </Suspense>
              
            </div>
+       </section>
+       <section className='min-w-[300px] h-auto'>
+        <AdBanner dataAdFormat='auto' dataFullWidthResponsive={true} dataAdSlot='4059060974' />
        </section>
     </main>
   )
