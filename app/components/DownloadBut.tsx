@@ -1,17 +1,20 @@
 'use client'
-import React, { useState } from 'react'
+import { Download } from 'lucide-react';
+
+import { buttonVariants } from '@/app/components/ui/button';
+import { cn } from '@/lib/utils';
 
 const DownloadBut = ({file}:{file:{filename:string,fileUrl:string}}) => {
-  const [isload,setload] = useState(false);
   return (
          <a
          href={file.fileUrl}
          download={file.filename}
-         onClick={()=>setload(false)}
          target='_blank'
-         className='text-green-500 mybut2'
+         rel='noreferrer'
+         className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'rounded-full')}
          >
-            {isload?"Loading..":"Download"}
+            <Download className="h-4 w-4" />
+            Download
         </a>
   )
 }

@@ -17,13 +17,36 @@ export const uploadToSanity = async (uploadKey:string,file:File) => {
       }
     });
 
-    console.log("Document created successfully",document);
-
     return document;
   }
   catch (error){
-     console.log("Error uploading",error);
      throw error;
   }
+};
+
+type UploadProgress = {
+  completed: number;
+  total: number;
+  file: File;
+};
+
+export const uploadManyToSanity = async (
+  uploadKey: string,
+  files: File[],
+  onProgress?: (progress: UploadProgress) => void,
+) => {
+  if (!uploadKey || files.length === 0) {
+    return [];
+  }
+
+  const uploadedFiles = [];
+
+  for (const [index, file] of files.entries()) {
+    const uploadedFile = await uploadToSanity(uploadKey, file);
+    uploadedFiles.push(uploadedFile);
+    onProgress?.({ completed: index + 1, total: files.length, file });
+  }
+
+  return uploadedFiles;
 };
 
