@@ -1,26 +1,26 @@
 import Image from 'next/image';
-import React, { Suspense } from 'react'
-import { Skeleton } from './ui/skeleton';
 import { fetchTotalStorageUsed } from '@/sanity/lib/Store';
+import { Badge } from '@/app/components/ui/badge';
+import { Card, CardContent } from '@/app/components/ui/card';
 
-const Ativee = () => {
+const Ativee = async () => {
+  const storageUsed = await fetchTotalStorageUsed();
+
   return (
-    <div className='py-10'>
-        <div className='relative group'>
-          <div className="absolute -inset-0.5 opacity-75 bg-gradient-to-r from-pink-600 to-purple-600 rounded-lg blur-sm group-hover:opacity-100 transition duration-1000 group-hover:duration-200
-          animate-tilt
-          "></div>
-           <button className='max-sm:px-5 max-sm:py-2 px-7 py-4 bg-black    rounded-lg leading-none flex items-center relative space-x-3 max-sm:space-x-2'>
-             <span className="flex item-center    space-x-5">
-               <Image src={"/clock.png"} alt='time'  width={20} height={20} />
-             </span>
-             <span className='text-indigo-400    font-mono'>Server Storage Used</span>
-             <Suspense fallback={<Skeleton className='store_skeleton_tag'/>}>
-             <span className='text-green-700 font-mono group-hover:text-green-600 transition duration-200'>{fetchTotalStorageUsed()} MB</span>
-            </Suspense>
-           </button>
+    <Card className="overflow-hidden border-border/70 bg-card/90 shadow-lg shadow-black/10">
+      <CardContent className="flex items-center gap-4 p-5">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <Image src="/clock.png" alt="time" width={22} height={22} />
         </div>
-    </div>
+        <div className="flex flex-1 flex-col gap-1">
+          <p className="text-sm font-medium text-muted-foreground">Server storage used</p>
+          <div className="flex items-end gap-2">
+            <span className="text-2xl font-semibold tracking-tight">{storageUsed}</span>
+            <Badge className="rounded-full bg-secondary text-secondary-foreground">Live</Badge>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
