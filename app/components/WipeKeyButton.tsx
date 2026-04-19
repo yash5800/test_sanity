@@ -1,9 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AlertTriangle, Sparkles, Trash2, X } from "lucide-react";
+import { AlertTriangle, Sparkles, Trash2 } from "lucide-react";
 
 import { Button } from "@/app/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogIcon,
+  AlertDialogSecondaryAction,
+  AlertDialogTitle,
+} from "@/app/components/ui/alert-dialog";
 import { Input } from "@/app/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { client } from "@/sanity/lib/client";
@@ -70,101 +80,74 @@ const WipeKeyButton = ({ uploadKey, fileCount }: { uploadKey: string; fileCount:
 
   return (
     <>
-      <Button
-        type="button"
-        variant="destructive"
-        className="inline-flex h-11 items-center justify-center rounded-2xl"
-        onClick={() => setOpen(true)}
-        disabled={isDeleting || fileCount === 0}
-      >
-        <Trash2 className="h-4 w-4" />
-        Wipe
-      </Button>
-
-      {isOpen ? (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-6 backdrop-blur-sm"
-          onClick={() => !isDeleting && setOpen(false)}
+      <AlertDialog open={isOpen} onOpenChange={(nextOpen) => !isDeleting && setOpen(nextOpen)}>
+        <Button
+          type="button"
+          variant="destructive"
+          className="inline-flex h-11 items-center justify-center rounded-2xl"
+          onClick={() => setOpen(true)}
+          disabled={isDeleting || fileCount === 0}
         >
-          <div
-            role="alertdialog"
-            aria-modal="true"
-            aria-labelledby="wipe-key-title"
-            aria-describedby="wipe-key-description"
-            className="w-full max-w-xl overflow-hidden rounded-[1.75rem] border border-destructive/30 bg-background p-6 shadow-2xl shadow-black/50"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="-mx-6 -mt-6 h-2 bg-gradient-to-r from-destructive via-chart-5 to-destructive" />
+          <Trash2 className="h-4 w-4" />
+          Wipe
+        </Button>
+
+        <AlertDialogContent className="max-w-xl gap-0 border-border/70 bg-card p-0 shadow-[0_18px_50px_rgba(15,23,42,0.18)]">
+          <div className="h-1.5 bg-gradient-to-r from-destructive via-chart-5 to-destructive" />
+          <AlertDialogHeader className="px-6 pb-3 pt-6 text-left">
             <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
+              <AlertDialogIcon>
                 <AlertTriangle className="h-5 w-5" />
-              </div>
+              </AlertDialogIcon>
               <div className="min-w-0 flex-1 space-y-1">
-                <h2 id="wipe-key-title" className="text-lg font-semibold tracking-tight">
-                  Wipe all files for this key?
-                </h2>
-                <p id="wipe-key-description" className="text-sm text-muted-foreground">
+                <AlertDialogTitle>Wipe all files for this key?</AlertDialogTitle>
+                <AlertDialogDescription className="text-sm leading-relaxed">
                   This action permanently deletes every file stored under <span className="font-semibold text-foreground">{uploadKey}</span>.
-                </p>
+                </AlertDialogDescription>
                 <p className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Sparkles className="h-3.5 w-3.5 text-chart-4" />
                   Material warning surface with explicit confirmation.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                disabled={isDeleting}
-                className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50"
-                aria-label="Close wipe dialog"
-              >
-                <X className="h-4 w-4" />
-              </button>
             </div>
+          </AlertDialogHeader>
 
-            <div className="mt-5 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-muted-foreground">
-              <p className="font-medium text-foreground">Type <span className="font-mono">{expectedText}</span> to confirm.</p>
-              <p className="mt-1">This prevents accidental wipes.</p>
-            </div>
-
-            <div className="mt-4 space-y-2">
-              <label htmlFor="wipe-confirmation" className="text-sm font-medium text-foreground">
-                Confirmation text
-              </label>
-              <Input
-                id="wipe-confirmation"
-                value={confirmationText}
-                onChange={(event) => setConfirmationText(event.target.value)}
-                placeholder={expectedText}
-                className="font-mono"
-                autoComplete="off"
-              />
-            </div>
-
-            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-                disabled={isDeleting}
-                className="rounded-full"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={wipeAllFiles}
-                disabled={!canConfirm}
-                className="rounded-full"
-              >
-                <Trash2 className="h-4 w-4" />
-                {isDeleting ? "Wiping..." : `Wipe ${fileCount} file${fileCount === 1 ? "" : "s"}`}
-              </Button>
-            </div>
+          <div className="mx-6 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-muted-foreground">
+            <p className="font-medium text-foreground">Type <span className="font-mono">{expectedText}</span> to confirm.</p>
+            <p className="mt-1">This prevents accidental wipes.</p>
           </div>
-        </div>
-      ) : null}
+
+          <div className="space-y-2 px-6 pb-2 pt-5">
+            <label htmlFor="wipe-confirmation" className="text-sm font-medium text-foreground">
+              Confirmation text
+            </label>
+            <Input
+              id="wipe-confirmation"
+              value={confirmationText}
+              onChange={(event) => setConfirmationText(event.target.value)}
+              placeholder={expectedText}
+              className="font-mono"
+              autoComplete="off"
+            />
+          </div>
+
+          <AlertDialogFooter className="gap-2 px-6 pb-6 pt-1 sm:justify-end">
+            <AlertDialogSecondaryAction className="h-11 rounded-full border-border/70" disabled={isDeleting}>
+              Cancel
+            </AlertDialogSecondaryAction>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={wipeAllFiles}
+              disabled={!canConfirm}
+              className="h-11 rounded-full"
+            >
+              <Trash2 className="h-4 w-4" />
+              {isDeleting ? "Wiping..." : `Wipe ${fileCount} file${fileCount === 1 ? "" : "s"}`}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

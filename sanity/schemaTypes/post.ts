@@ -24,6 +24,12 @@ export const Post = defineType({
         storeOriginalFilename: true,
       },
       validation:(rule)=>rule.required()
+    }),
+    defineField({
+      name: 'copiedFromId',
+      type: 'string',
+      readOnly: true,
+      description: 'When present, this file is a clone created from another file document.'
     })
   ],
   preview:{

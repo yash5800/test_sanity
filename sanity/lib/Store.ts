@@ -9,10 +9,10 @@ export const fetchTotalStorageBytes = async () => {
   }
 
   const assets = await client.fetch(`
-    *[_type == "sanity.fileAsset"] {
+    *[_type in ["sanity.fileAsset", "sanity.imageAsset"]] {
       "size": size
     }
-  `);
+  `, {}, { cache: 'no-store' });
 
   return assets.reduce((sum: number, asset: any) => sum + (asset.size || 0), 0);
 };
