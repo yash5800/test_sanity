@@ -1,22 +1,40 @@
-'use client'
-import { Download } from 'lucide-react';
+"use client";
 
-import { buttonVariants } from '@/app/components/ui/button';
-import { cn } from '@/lib/utils';
+import { useState } from 'react';
+import { Download, Loader2 } from 'lucide-react';
 
-const DownloadBut = ({file}:{file:{filename:string,fileUrl:string}}) => {
+import { Button } from '@/app/components/ui/button';
+import { downloadFileWithProgress } from './download-client';
+
+const DownloadBut = ({ file }: { file: { _id: string; filename: string } }) => {
+  const [isDownloading, setDownloading] = useState(false);
+
+  const handleDownload = async () => {
+    setDownloading(true);
+
+    try {
+      await downloadFileWithProgress({
+        url: `/api/files/download/${file._id}`,
+        filename: file.filename,
+      });
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
-         <a
-         href={file.fileUrl}
-         download={file.filename}
-         target='_blank'
-         rel='noreferrer'
-         className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'rounded-full')}
-         >
-            <Download className="h-4 w-4" />
-            Download
-        </a>
-  )
-}
+    <Button
+      type='button'
+      variant='outline'
+      size='sm'
+      className='rounded-full'
+      onClick={handleDownload}
+      disabled={isDownloading}
+    >
+      {isDownloading ? <Loader2 className='h-4 w-4 animate-spin' /> : <Download className='h-4 w-4' />}
+      {isDownloading ? 'Downloading...' : 'Download'}
+    </Button>
+  );
+};
 
-export default DownloadBut
+export default DownloadBut;

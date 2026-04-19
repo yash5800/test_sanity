@@ -16,12 +16,6 @@ import {
 } from "@/app/components/ui/alert-dialog";
 import { Input } from "@/app/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { client } from "@/sanity/lib/client";
-
-type FileRef = {
-  _id: string;
-  assetId?: string;
-};
 
 const WipeKeyButton = ({ uploadKey, fileCount }: { uploadKey: string; fileCount: number }) => {
   const [isOpen, setOpen] = useState(false);
@@ -36,12 +30,25 @@ const WipeKeyButton = ({ uploadKey, fileCount }: { uploadKey: string; fileCount:
     setDeleting(true);
 
     try {
-      const files = await client.fetch<FileRef[]>(
-        `*[_type == "post" && key == $key]{_id, "assetId": file.asset._ref}`,
-        { key: uploadKey },
-      );
+      const response = await fetch('/api/files/wipe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ key: uploadKey }),
+      });
 
-      if (!files.length) {
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          data && typeof data.error === 'string' ? data.error : 'Unable to wipe this key. Please try again.',
+        );
+      }
+
+      const result = data as { deletedFiles: number; deletedAssets: number };
+
+      if (!result.deletedFiles) {
         toast({
           title: "Nothing to wipe",
           description: `No files found for key ${uploadKey}.`,
@@ -51,18 +58,9 @@ const WipeKeyButton = ({ uploadKey, fileCount }: { uploadKey: string; fileCount:
         return;
       }
 
-      const documentIds = files.map((file) => file._id);
-      const uniqueAssetIds = Array.from(new Set(files.map((file) => file.assetId).filter(Boolean))) as string[];
-
-      const deleteDocsTransaction = documentIds.reduce((tx, id) => tx.delete(id), client.transaction());
-      await deleteDocsTransaction.commit();
-
-      // Attempt to clean up file assets; failure here should not block document removal.
-      await Promise.allSettled(uniqueAssetIds.map((assetId) => client.delete(assetId)));
-
       toast({
         title: "Workspace wiped",
-        description: `${documentIds.length} file${documentIds.length === 1 ? "" : "s"} removed from ${uploadKey}.`,
+        description: `${result.deletedFiles} file${result.deletedFiles === 1 ? "" : "s"} removed from ${uploadKey}.`,
         variant: "success",
       });
       setConfirmationText("");
