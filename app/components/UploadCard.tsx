@@ -2,7 +2,7 @@
 import { useToast } from '@/hooks/use-toast';
 import { uploadManyToSanity } from '@/sanity/lib/upload'
 import { useRouter } from 'next/navigation';
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { FileUp, ImagePlus, Loader2, Sparkles, UploadCloud } from 'lucide-react'
 
 import { Button } from '@/app/components/ui/button';
@@ -13,23 +13,49 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
   const [selectedCount, setSelectedCount] = useState(0);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [activeFileName, setActiveFileName] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const router = useRouter();
   const {toast} = useToast();
 
   const handleOnClick=()=>{
-     const upIn = document.getElementById("file")as HTMLInputElement;
-     if (upIn){
-       upIn.click();
-     }
+     inputRef.current?.click();
+  }
+
+  const handleSelectedFiles = async (files: File[]) => {
+    setSelectedCount(files.length);
+    if (files.length > 0) {
+      await handleFileUpload(files);
+    }
   }
 
   const handleFileChange = async (e : React.ChangeEvent<HTMLInputElement>)=>{
       const selectedFiles = e.target.files ? Array.from(e.target.files) : [];
-      setSelectedCount(selectedFiles.length);
+      await handleSelectedFiles(selectedFiles);
+      e.target.value = '';
+  }
 
-      if (selectedFiles.length > 0) {
-        await handleFileUpload(selectedFiles);
-      }
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (!isUploading) {
+      setIsDragging(true);
+    }
+  }
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (isUploading) {
+      return;
+    }
+
+    const droppedFiles = Array.from(e.dataTransfer.files ?? []);
+    await handleSelectedFiles(droppedFiles);
   }
   
   const handleFileUpload= async(files:File[])=>{
@@ -99,14 +125,38 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
       <CardContent className="space-y-4">
        <input 
          id='file'
+         ref={inputRef}
          type="file" 
+         className='hidden'
          multiple
          onChange={handleFileChange}
        />
-       <Button className="h-11 w-full rounded-2xl" variant="secondary" onClick={handleOnClick} type="button" disabled={isUploading}>
-         {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileUp className="h-4 w-4" />}
-         {isUploading ? "Uploading..." : "Choose and upload"}
-       </Button>
+       <div
+         className={`rounded-[1.25rem] border border-dashed p-4 transition-colors sm:p-5 ${
+           isDragging ? 'border-primary bg-primary/10' : 'border-border/70 bg-background/60'
+         } ${isUploading ? 'pointer-events-none opacity-80' : ''}`}
+         onDragOver={handleDragOver}
+         onDragLeave={handleDragLeave}
+         onDrop={handleDrop}
+       >
+         <div className='flex flex-col items-center gap-3 text-center'>
+           <div className='rounded-full border border-border/80 bg-card/80 p-2'>
+             {isUploading ? <Loader2 className='h-5 w-5 animate-spin text-primary' /> : <FileUp className='h-5 w-5 text-primary' />}
+           </div>
+           <div className='space-y-1'>
+             <p className='text-sm font-medium'>
+               {isUploading ? 'Uploading files...' : 'Drag and drop files here'}
+             </p>
+             <p className='text-xs text-muted-foreground'>
+               or use the button below to choose files
+             </p>
+           </div>
+           <Button className="h-10 rounded-xl px-4" variant="secondary" onClick={handleOnClick} type="button" disabled={isUploading}>
+             {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
+             {isUploading ? "Uploading..." : "Choose files"}
+           </Button>
+         </div>
+       </div>
        {isUploading ? (
          <div className="space-y-3 rounded-[1.25rem] border border-border/70 bg-background/70 p-4 shadow-sm">
            <div className="flex items-center justify-between gap-3 text-sm">
