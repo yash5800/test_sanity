@@ -9,7 +9,7 @@ const UserFiles = async({uploadKey}:{uploadKey:string}) => {
 
   return (
     <>
-      <UserFilesList files={post as UserFileItem[]} />
+      <UserFilesList files={post as UserFileItem[]} currentKey={uploadKey} />
       <SanityLive/>
     </>
     

@@ -1,6 +1,7 @@
 'use client'
 import { useToast } from '@/hooks/use-toast';
 import { uploadManyToSanity } from '@/sanity/lib/upload'
+import { useRouter } from 'next/navigation';
 import React, { useState } from 'react'
 import { FileUp, ImagePlus, Loader2, Sparkles, UploadCloud } from 'lucide-react'
 
@@ -12,6 +13,7 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
   const [selectedCount, setSelectedCount] = useState(0);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [activeFileName, setActiveFileName] = useState<string | null>(null);
+  const router = useRouter();
   const {toast} = useToast();
 
   const handleOnClick=()=>{
@@ -54,6 +56,7 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
             description:`${files.length} file${files.length > 1 ? 's' : ''} uploaded successfully`,
             variant:"success",
           })
+          router.refresh();
           setSelectedCount(0);
           setUploadProgress(100);
           setUploading(false);

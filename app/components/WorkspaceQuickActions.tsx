@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Copy, Link2, FileText, UploadCloud } from 'lucide-react';
+import { BarChart3, Copy, Link2, FileText, UploadCloud } from 'lucide-react';
 
 import { Button } from '@/app/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -71,6 +71,13 @@ const WorkspaceQuickActions = ({ workspaceKey }: { workspaceKey: string }) => {
       >
         <FileText className='h-4 w-4' />
         Files
+      </Link>
+      <Link
+        href={`/user/${workspaceKey}/analysis`}
+        className='inline-flex h-9 items-center justify-center gap-2 rounded-full border border-input bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground'
+      >
+        <BarChart3 className='h-4 w-4' />
+        Analysis
       </Link>
     </div>
   );
