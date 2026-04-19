@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   getShareLinkByToken,
   isShareExpired,
-  markShareAccessed,
   verifySharePasscode,
 } from '@/sanity/lib/share-links';
 
@@ -26,7 +25,7 @@ export async function GET(_: NextRequest, context: { params: Promise<{ token: st
     return NextResponse.json({ error: 'Share link has expired' }, { status: 410 });
   }
 
-  if (!share.fileUrl) {
+  if (!share.fileId) {
     return NextResponse.json({ error: 'Shared file is no longer available' }, { status: 404 });
   }
 
@@ -54,7 +53,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ to
     return NextResponse.json({ error: 'Share link has expired' }, { status: 410 });
   }
 
-  if (!share.fileUrl) {
+  if (!share.fileId) {
     return NextResponse.json({ error: 'Shared file is no longer available' }, { status: 404 });
   }
 
@@ -71,11 +70,9 @@ export async function POST(request: NextRequest, context: { params: Promise<{ to
     }
   }
 
-  await markShareAccessed(share._id);
-
   return NextResponse.json({
     filename: share.filename || 'Shared file',
-    fileUrl: share.fileUrl,
     expiresAt: share.expiresAt,
+    ready: true,
   });
 }

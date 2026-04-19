@@ -56,7 +56,6 @@ export const getShareLinkByToken = async (token: string) => {
     passcodeHash?: string;
     passcodeSalt?: string;
     filename?: string;
-    fileUrl?: string;
     fileId?: string;
   } | null>(
     `*[_type == "shareLink" && tokenHash == $tokenHash][0]{
@@ -66,7 +65,6 @@ export const getShareLinkByToken = async (token: string) => {
       passcodeHash,
       passcodeSalt,
       "filename": file->filename,
-      "fileUrl": file->file.asset->url,
       "fileId": file->_id
     }`,
     { tokenHash },
@@ -104,4 +102,30 @@ export const markShareAccessed = async (shareId: string) => {
     .inc({ accessCount: 1 })
     .set({ lastAccessedAt: new Date().toISOString() })
     .commit();
+};
+
+export const deleteExpiredShareLinks = async (batchSize = 200) => {
+  const now = new Date().toISOString();
+  let deletedCount = 0;
+
+  while (true) {
+    const expiredIds = await client.fetch<string[]>(
+      `*[_type == "shareLink" && expiresAt <= $now][0...$batchSize]._id`,
+      { now, batchSize },
+    );
+
+    if (!expiredIds.length) {
+      break;
+    }
+
+    const tx = expiredIds.reduce((transaction, id) => transaction.delete(id), client.transaction());
+    await tx.commit();
+    deletedCount += expiredIds.length;
+
+    if (expiredIds.length < batchSize) {
+      break;
+    }
+  }
+
+  return deletedCount;
 };

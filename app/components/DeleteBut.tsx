@@ -15,7 +15,6 @@ import {
   AlertDialogTitle,
 } from '@/app/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { client } from '@/sanity/lib/client';
 
 const DeleteBut = ({ fileId, fileName }: { fileId: string; fileName?: string }) => {
   const [isLoading, setLoading] = useState(false);
@@ -26,33 +25,20 @@ const DeleteBut = ({ fileId, fileName }: { fileId: string; fileName?: string }) 
     setLoading(true);
 
     try {
-      const doc = await client.getDocument(fileId);
+      const response = await fetch('/api/files/delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ fileId }),
+      });
 
-      const assetRef =
-        doc?.file?.asset?._ref ||
-        doc?.image?.asset?._ref;
-
-      if (assetRef) {
-        // 🔍 Find ALL documents referencing this asset
-        const refs: string[] = await client.fetch(
-          `*[_type != "sanity.fileAsset" && _type != "sanity.imageAsset" && references($assetId)]._id`,
-          { assetId: assetRef }
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(
+          data && typeof data.error === 'string' ? data.error : 'Error deleting file',
         );
-
-        // 🧹 Remove references from ALL docs
-        for (const refId of refs) {
-          await client
-            .patch(refId)
-            .unset(["file", "image"])
-            .commit();
-        }
-
-        // 🗑️ Now safely delete asset
-        await client.delete(assetRef);
       }
-
-      // 🗑️ Delete main document
-      await client.delete(fileId);
 
       setOpen(false);
 

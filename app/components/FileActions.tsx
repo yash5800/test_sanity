@@ -39,7 +39,7 @@ const FileActions = ({ file, currentKey }: FileActionsProps) => {
   const [isMetadataOpen, setMetadataOpen] = useState(false);
   const [isOptionsOpen, setOptionsOpen] = useState(false);
   const [renameValue, setRenameValue] = useState(file.filename);
-  const [copyKeyValue, setCopyKeyValue] = useState(currentKey);
+  const [copyKeyValue, setCopyKeyValue] = useState('');
   const [tagsValue, setTagsValue] = useState((file.tags ?? []).join(', '));
   const [noteValue, setNoteValue] = useState(file.note ?? '');
   const [isRenaming, setRenaming] = useState(false);
@@ -48,6 +48,11 @@ const FileActions = ({ file, currentKey }: FileActionsProps) => {
 
   const trimmedRenameValue = useMemo(() => renameValue.trim(), [renameValue]);
   const trimmedCopyKeyValue = useMemo(() => copyKeyValue.trim(), [copyKeyValue]);
+  const trimmedCurrentKey = useMemo(() => currentKey.trim(), [currentKey]);
+  const isCopyToSameKey = useMemo(
+    () => trimmedCopyKeyValue.length > 0 && trimmedCopyKeyValue === trimmedCurrentKey,
+    [trimmedCopyKeyValue, trimmedCurrentKey],
+  );
   const parsedTags = useMemo(
     () => tagsValue.split(',').map((tag) => tag.trim()).filter(Boolean),
     [tagsValue],
@@ -76,6 +81,15 @@ const FileActions = ({ file, currentKey }: FileActionsProps) => {
   };
 
   const handleCopyFile = async () => {
+    if (isCopyToSameKey) {
+      toast({
+        title: 'Invalid target key',
+        description: 'Choose a different key from the current workspace key',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setCopying(true);
     try {
       await copySanityFileToKey(file._id, trimmedCopyKeyValue, file.filename);
@@ -122,7 +136,7 @@ const FileActions = ({ file, currentKey }: FileActionsProps) => {
   return (
     <div className='space-y-3'>
       <div className='flex flex-wrap gap-2'>
-        <DownloadBut file={{ filename: file.filename, fileUrl: file.fileUrl }} />
+        <DownloadBut file={{ _id: file._id, filename: file.filename }} />
         <ShareBut file={{ _id: file._id, filename: file.filename, fileUrl: file.fileUrl }} />
         <Button type='button' variant='outline' size='sm' className='rounded-full' onClick={() => setOptionsOpen(true)}>
           <MoreHorizontal className='h-4 w-4' />
@@ -331,7 +345,7 @@ const FileActions = ({ file, currentKey }: FileActionsProps) => {
 
           setCopyOpen(nextOpen);
           if (!nextOpen) {
-            setCopyKeyValue(currentKey);
+            setCopyKeyValue('');
           }
         }}
       >
@@ -353,6 +367,11 @@ const FileActions = ({ file, currentKey }: FileActionsProps) => {
             <p className='text-xs text-muted-foreground'>
               The copied file keeps the same filename and asset, but it becomes a separate document in the target workspace.
             </p>
+            {isCopyToSameKey ? (
+              <p className='text-xs text-destructive'>
+                Target key must be different from the current key.
+              </p>
+            ) : null}
           </div>
           <AlertDialogFooter className='gap-2 px-6 pb-6 pt-1 sm:justify-end'>
             <Button
@@ -361,7 +380,7 @@ const FileActions = ({ file, currentKey }: FileActionsProps) => {
               className='h-11 rounded-full'
               onClick={() => {
                 setCopyOpen(false);
-                setCopyKeyValue(currentKey);
+                setCopyKeyValue('');
               }}
               disabled={isCopying}
             >
@@ -371,7 +390,7 @@ const FileActions = ({ file, currentKey }: FileActionsProps) => {
               type='button'
               className='h-11 rounded-full'
               onClick={handleCopyFile}
-              disabled={isCopying || trimmedCopyKeyValue.length === 0}
+              disabled={isCopying || trimmedCopyKeyValue.length === 0 || isCopyToSameKey}
             >
               {isCopying ? <Loader2 className='h-4 w-4 animate-spin' /> : <FolderInput className='h-4 w-4' />}
               {isCopying ? 'Copying...' : 'Copy file'}
