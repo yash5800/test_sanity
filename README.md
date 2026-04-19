@@ -3,6 +3,8 @@
 SanityHub is a lightweight key-based file workspace built with Next.js and Sanity.
 Users enter a workspace key, upload files, manage them, and share/download from a simple dashboard.
 
+Full feature inventory and roadmap ideas: see `FEATURES.md`.
+
 ## Features
 
 - Key-based workspace access (no traditional auth flow)

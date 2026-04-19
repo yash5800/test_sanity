@@ -37,3 +37,16 @@ export const copySanityFileToKey = async (fileId: string, key: string, filename?
     },
   });
 };
+
+export const updateSanityFileMetadata = async (fileId: string, tags: string[], note: string) => {
+  const cleanedTags = Array.from(new Set(tags.map((tag) => tag.trim()).filter(Boolean)));
+  const trimmedNote = note.trim();
+
+  return client
+    .patch(fileId)
+    .set({
+      tags: cleanedTags,
+      note: trimmedNote,
+    })
+    .commit();
+};

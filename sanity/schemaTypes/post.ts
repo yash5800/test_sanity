@@ -30,6 +30,18 @@ export const Post = defineType({
       type: 'string',
       readOnly: true,
       description: 'When present, this file is a clone created from another file document.'
+    }),
+    defineField({
+      name: 'tags',
+      type: 'array',
+      of: [{ type: 'string' }],
+      description: 'Optional labels used for search and organization.'
+    }),
+    defineField({
+      name: 'note',
+      type: 'text',
+      rows: 3,
+      description: 'Optional note attached to this file.'
     })
   ],
   preview:{

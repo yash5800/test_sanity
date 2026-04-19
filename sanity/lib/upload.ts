@@ -1,8 +1,15 @@
 import { client } from "./client"
 
+export const MAX_UPLOAD_SIZE_BYTES = 1024 * 1024 * 1024;
+
 export const uploadToSanity = async (uploadKey:string,file:File) => {
   try{
     if(!uploadKey||!file) return null;
+
+    if (file.size > MAX_UPLOAD_SIZE_BYTES) {
+      throw new Error('File must be 1 GB or smaller');
+    }
+
     const uploadFile = await client.assets.upload('file',file);
 
     const document = await client.create({
@@ -37,6 +44,12 @@ export const uploadManyToSanity = async (
 ) => {
   if (!uploadKey || files.length === 0) {
     return [];
+  }
+
+  const oversizedFile = files.find((file) => file.size > MAX_UPLOAD_SIZE_BYTES);
+
+  if (oversizedFile) {
+    throw new Error(`${oversizedFile.name} is larger than 1 GB`);
   }
 
   const uploadedFiles = [];

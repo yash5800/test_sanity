@@ -6,6 +6,8 @@ export const QUERY = defineQuery(`*[_type=="post" && key == $key]|order(_created
   key,
   filename,
   copiedFromId,
+  tags,
+  note,
   "fileUrl": file.asset->url,
   "size": file.asset->size,
   _createdAt
