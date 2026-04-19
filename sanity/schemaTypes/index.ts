@@ -1,7 +1,8 @@
 import { type SchemaTypeDefinition } from 'sanity'
 import { Post } from './post'
+import { ShareLink } from './shareLink'
 
 
 export const schema: { types: SchemaTypeDefinition[] } = {
-  types: [Post],
+  types: [Post, ShareLink],
 }

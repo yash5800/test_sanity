@@ -16,6 +16,8 @@ export interface UserFileItem {
   key: string;
   filename: string;
   copiedFromId?: string;
+  tags?: string[];
+  note?: string;
   fileUrl: string;
   size?: number;
   _createdAt: string;
@@ -56,7 +58,9 @@ const UserFilesList = ({ files, currentKey }: { files: UserFileItem[]; currentKe
   const filteredFiles = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
     const nextFiles = files.filter((file) => {
-      const matchesSearch = !query || file.filename.toLowerCase().includes(query);
+      const tags = (file.tags ?? []).join(' ').toLowerCase();
+      const note = (file.note ?? '').toLowerCase();
+      const matchesSearch = !query || file.filename.toLowerCase().includes(query) || tags.includes(query) || note.includes(query);
       const matchesType = fileType === 'all' || getFileType(file) === fileType;
 
       return matchesSearch && matchesType;
@@ -223,10 +227,32 @@ const UserFilesList = ({ files, currentKey }: { files: UserFileItem[]; currentKe
                     {typeof item.size === 'number' ? formatBytes(item.size) : 'Size unknown'}
                   </span>
                 </div>
+                {(item.tags?.length ?? 0) > 0 ? (
+                  <div
+                    className={`flex flex-wrap gap-2 sm:flex ${
+                      expandedMobileDetailsId === item._id ? 'flex animate-enter' : 'hidden'
+                    }`}
+                  >
+                    {item.tags?.map((tag) => (
+                      <Badge key={`${item._id}-${tag}`} className='rounded-full border border-border/70 bg-background text-foreground'>
+                        #{tag}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : null}
+                {item.note ? (
+                  <p
+                    className={`text-sm text-muted-foreground sm:block ${
+                      expandedMobileDetailsId === item._id ? 'block animate-enter' : 'hidden'
+                    }`}
+                  >
+                    {item.note}
+                  </p>
+                ) : null}
               </CardHeader>
               <CardContent className='px-5 pb-4'>
                   <FileActions
-                    file={{ _id: item._id, filename: item.filename, fileUrl: item.fileUrl }}
+                    file={{ _id: item._id, filename: item.filename, fileUrl: item.fileUrl, tags: item.tags, note: item.note }}
                     currentKey={currentKey}
                   />
               </CardContent>

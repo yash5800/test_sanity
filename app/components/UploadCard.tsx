@@ -1,6 +1,6 @@
 'use client'
 import { useToast } from '@/hooks/use-toast';
-import { uploadManyToSanity } from '@/sanity/lib/upload'
+import { MAX_UPLOAD_SIZE_BYTES, uploadManyToSanity } from '@/sanity/lib/upload'
 import { useRouter } from 'next/navigation';
 import React, { useRef, useState } from 'react'
 import { FileUp, ImagePlus, Loader2, Sparkles, UploadCloud } from 'lucide-react'
@@ -67,6 +67,18 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
           })
           return;
         }
+
+        const oversizedFile = files.find((file) => file.size > MAX_UPLOAD_SIZE_BYTES);
+
+        if (oversizedFile) {
+          toast({
+            title: 'Error',
+            description: `${oversizedFile.name} is larger than 1 GB`,
+            variant: 'destructive',
+          });
+          return;
+        }
+
         try{
           setUploading(true);
           setUploadProgress(0);
