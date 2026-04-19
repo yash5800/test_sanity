@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AlertTriangle, Trash2, X } from "lucide-react";
+import { AlertTriangle, Sparkles, Trash2, X } from "lucide-react";
 
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
@@ -73,7 +73,7 @@ const WipeKeyButton = ({ uploadKey, fileCount }: { uploadKey: string; fileCount:
       <Button
         type="button"
         variant="destructive"
-        className="inline-flex h-11 items-center justify-center rounded-xl"
+        className="inline-flex h-11 items-center justify-center rounded-2xl"
         onClick={() => setOpen(true)}
         disabled={isDeleting || fileCount === 0}
       >
@@ -91,9 +91,10 @@ const WipeKeyButton = ({ uploadKey, fileCount }: { uploadKey: string; fileCount:
             aria-modal="true"
             aria-labelledby="wipe-key-title"
             aria-describedby="wipe-key-description"
-            className="w-full max-w-xl rounded-3xl border border-destructive/30 bg-background p-6 shadow-2xl shadow-black/50"
+            className="w-full max-w-xl overflow-hidden rounded-[1.75rem] border border-destructive/30 bg-background p-6 shadow-2xl shadow-black/50"
             onClick={(event) => event.stopPropagation()}
           >
+            <div className="-mx-6 -mt-6 h-2 bg-gradient-to-r from-destructive via-chart-5 to-destructive" />
             <div className="flex items-start gap-3">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
                 <AlertTriangle className="h-5 w-5" />
@@ -104,6 +105,10 @@ const WipeKeyButton = ({ uploadKey, fileCount }: { uploadKey: string; fileCount:
                 </h2>
                 <p id="wipe-key-description" className="text-sm text-muted-foreground">
                   This action permanently deletes every file stored under <span className="font-semibold text-foreground">{uploadKey}</span>.
+                </p>
+                <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Sparkles className="h-3.5 w-3.5 text-chart-4" />
+                  Material warning surface with explicit confirmation.
                 </p>
               </div>
               <button
@@ -119,7 +124,7 @@ const WipeKeyButton = ({ uploadKey, fileCount }: { uploadKey: string; fileCount:
 
             <div className="mt-5 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-muted-foreground">
               <p className="font-medium text-foreground">Type <span className="font-mono">{expectedText}</span> to confirm.</p>
-              <p className="mt-1">This matches GitHub-style deletion checks and prevents accidental wipes.</p>
+              <p className="mt-1">This prevents accidental wipes.</p>
             </div>
 
             <div className="mt-4 space-y-2">

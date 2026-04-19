@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from 'react'
-import { AlertTriangle, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Sparkles, Trash2, X } from 'lucide-react';
 
 import { Button } from '@/app/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -12,25 +12,48 @@ const DeleteBut = ({ fileId, fileName }: { fileId: string; fileName?: string }) 
   const [isOpen, setOpen] = useState(false);
   const {toast} = useToast();
   const deleteUploadedFile = async (): Promise<void> => {
-   setLoading(true);
+    setLoading(true);
     try {
-      await client.delete(fileId); // Delete by _id
+      const doc = await client.getDocument(fileId);
+      const assetRef =
+        doc?.file?.asset?._ref ||
+        doc?.image?.asset?._ref;
+
+      if (assetRef) {
+        // 🔍 Find all documents referencing this asset
+        const refs = await client.fetch(
+          `*[_type != "sanity.fileAsset" && references($assetId)]._id`,
+          { assetId: assetRef }
+        );
+
+        // 🧹 Remove references
+        for (const refId of refs) {
+          await client.patch(refId).unset(["file", "image"]).commit();
+        }
+
+        // 🗑️ Delete asset
+        await client.delete(assetRef);
+      }
+
+      // 🗑️ Delete main document
+      await client.delete(fileId);
+
       setOpen(false);
+
       toast({
-       title: 'File deleted',
-       description: fileName
-         ? `${fileName} has been removed from your workspace.`
-         : 'The file has been removed from your workspace.',
-       variant:'success'
-     })
+        title: 'File deleted',
+        description: fileName || 'Deleted successfully',
+        variant: 'success'
+      });
+
     } catch (error) {
-     toast({
-       title: 'Error',
-       description : error instanceof Error
-         ? `Error deleting file: ${error.message}`
-         : 'Error deleting file. Please try again.',
-       variant: 'destructive',
-     })
+      toast({
+        title: 'Error',
+        description: error instanceof Error
+          ? error.message
+          : 'Error deleting file',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -57,9 +80,10 @@ const DeleteBut = ({ fileId, fileName }: { fileId: string; fileName?: string }) 
             aria-modal="true"
             aria-labelledby="delete-file-title"
             aria-describedby="delete-file-description"
-            className="w-full max-w-md rounded-3xl border border-border/80 bg-background p-6 shadow-2xl shadow-black/40"
+            className="w-full max-w-md overflow-hidden rounded-[1.75rem] border border-border/80 bg-background p-6 shadow-2xl shadow-black/40"
             onClick={(event) => event.stopPropagation()}
           >
+            <div className="-mx-6 -mt-6 mb-6 h-2 bg-gradient-to-r from-destructive via-chart-5 to-destructive" />
             <div className="flex items-start gap-3">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
                 <AlertTriangle className="h-5 w-5" />
@@ -72,6 +96,10 @@ const DeleteBut = ({ fileId, fileName }: { fileId: string; fileName?: string }) 
                   {fileName
                     ? `${fileName} will be removed permanently from this workspace.`
                     : 'This file will be removed permanently from this workspace.'}
+                </p>
+                <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Sparkles className="h-3.5 w-3.5 text-chart-4" />
+                  This action cannot be undone.
                 </p>
               </div>
               <button

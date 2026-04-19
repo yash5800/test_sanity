@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Database, HardDriveUpload, Layers3 } from 'lucide-react';
 
 import { Badge } from '@/app/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
@@ -18,23 +19,33 @@ const StorageOverview = async ({ uploadKey }: { uploadKey: string }) => {
 
   return (
     <Card className="overflow-hidden border-border/70 bg-card/90 shadow-lg shadow-black/10">
+      <div className="h-2 bg-gradient-to-r from-primary via-chart-2 to-chart-4" />
       <CardHeader className="space-y-2 pb-4">
         <div className="flex items-center justify-between gap-3">
-          <Badge className="rounded-full bg-secondary text-secondary-foreground">Workspace</Badge>
+          <Badge className="rounded-full bg-secondary/90 text-secondary-foreground">Workspace</Badge>
           <span className="text-sm text-muted-foreground">{files.length} file{files.length === 1 ? '' : 's'}</span>
         </div>
-        <CardTitle className="text-2xl">Storage overview</CardTitle>
+        <CardTitle className="flex items-center gap-2 text-2xl">
+          <Database className="h-5 w-5 text-primary" />
+          Storage overview
+        </CardTitle>
         <CardDescription>A simple summary with direct access to upload and file browsing.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-3xl border border-border/70 bg-background/60 p-5 shadow-sm">
-            <p className="text-sm text-muted-foreground">Server storage used</p>
+          <div className="rounded-[1.5rem] border border-border/70 bg-gradient-to-br from-primary/10 via-background to-background p-5 shadow-sm">
+            <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
+              <p>Server storage used</p>
+              <Layers3 className="h-4 w-4 text-primary" />
+            </div>
             <p className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">{formatBytes(serverBytes)}</p>
             <p className="mt-2 text-sm text-muted-foreground">All files stored across the server.</p>
           </div>
-          <div className="rounded-3xl border border-border/70 bg-background/60 p-5 shadow-sm">
-            <p className="text-sm text-muted-foreground">Workspace storage used</p>
+          <div className="rounded-[1.5rem] border border-border/70 bg-gradient-to-br from-chart-2/12 via-background to-background p-5 shadow-sm">
+            <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
+              <p>Workspace storage used</p>
+              <HardDriveUpload className="h-4 w-4 text-chart-2" />
+            </div>
             <p className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">{formatBytes(workspaceBytes)}</p>
             <p className="mt-2 text-sm text-muted-foreground">
               {files.length === 0 ? 'No files uploaded yet.' : 'Everything in this workspace is shown below.'}
@@ -51,7 +62,7 @@ const StorageOverview = async ({ uploadKey }: { uploadKey: string }) => {
           </Link>
           <Link
             href="#files"
-            className="inline-flex h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex h-11 items-center justify-center rounded-[1rem] bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             Jump to files
           </Link>
