@@ -1,13 +1,15 @@
 "use client";
 
+import Image from 'next/image';
 import { useMemo, useState } from 'react';
-import { CalendarClock, FileArchive, FileText, Info, Presentation, Search, SlidersHorizontal } from 'lucide-react';
+import { CalendarClock, Info, Search, SlidersHorizontal } from 'lucide-react';
 
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Badge } from '@/app/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/app/components/ui/card';
 import { formatBytes } from '@/lib/format-storage';
+import { FILE_ICON_FALLBACK_ICON, getFileExtension, getFileIconCategory, getFileIconSrc } from './file-icon-map';
 import FileActions from './FileActions';
 
 export interface UserFileItem {
@@ -43,34 +45,6 @@ const getFileType = (file: UserFileItem) => {
   if (source.includes('.pptx') || source.includes('.ppt')) return 'ppt';
 
   return 'all';
-};
-
-const getFileIcon = (file: UserFileItem) => {
-  switch (getFileType(file)) {
-    case 'docx':
-      return <FileText className='h-4 w-4' />;
-    case 'pdf':
-      return <FileArchive className='h-4 w-4' />;
-    case 'ppt':
-      return <Presentation className='h-4 w-4' />;
-    default:
-      return <FileText className='h-4 w-4' />;
-  }
-};
-
-const getFileExtension = (file: UserFileItem) => {
-  const normalizedName = file.filename.split('?')[0].split('#')[0];
-  const fileNameParts = normalizedName.split('.');
-
-  if (fileNameParts.length > 1) {
-    return fileNameParts[fileNameParts.length - 1].toUpperCase();
-  }
-
-  const normalizedUrl = file.fileUrl.split('?')[0].split('#')[0];
-  const urlName = normalizedUrl.split('/').pop() ?? '';
-  const urlNameParts = urlName.split('.');
-
-  return urlNameParts.length > 1 ? urlNameParts[urlNameParts.length - 1].toUpperCase() : 'FILE';
 };
 
 const UserFilesList = ({ files, currentKey }: { files: UserFileItem[]; currentKey: string }) => {
@@ -179,8 +153,18 @@ const UserFilesList = ({ files, currentKey }: { files: UserFileItem[]; currentKe
               <CardHeader className='space-y-3 p-5 pb-3'>
                 <div className='flex items-start justify-between gap-3'>
                   <div className='flex min-w-0 flex-1 items-center gap-3'>
-                    <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary'>
-                      {getFileIcon(item)}
+                    <div className='flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary/10 p-2'>
+                      {getFileIconCategory(item.filename, item.fileUrl) === 'generic' ? (
+                        <FILE_ICON_FALLBACK_ICON className='h-7 w-7 text-muted-foreground' aria-hidden='true' />
+                      ) : (
+                        <Image
+                          src={getFileIconSrc(item.filename, item.fileUrl)}
+                          alt={`${getFileExtension(item.filename, item.fileUrl) || 'file'} icon`}
+                          width={28}
+                          height={28}
+                          className='h-7 w-7 object-contain'
+                        />
+                      )}
                     </div>
                     <div className='min-w-0 flex-1 space-y-2'>
                       <h1 className='min-w-0 text-base font-semibold leading-snug sm:text-lg'>
@@ -190,7 +174,7 @@ const UserFilesList = ({ files, currentKey }: { files: UserFileItem[]; currentKe
                         <span className='hidden truncate sm:block'>{item.filename.split('.').slice(0, -1).join('.') || item.filename}</span>
                       </h1>
                       <Badge className='w-fit rounded-full border border-border/70 bg-secondary/70 text-secondary-foreground'>
-                        {getFileExtension(item)}
+                        {getFileExtension(item.filename, item.fileUrl).toUpperCase() || 'FILE'}
                       </Badge>
                     </div>
                   </div>
