@@ -10,19 +10,21 @@ export type FileIconCategory =
   | 'archive'
   | 'audio'
   | 'code'
-  | 'generic';
+  | 'generic'
+  | 'compressed';
 
 const FILE_ICON_SRC_BY_CATEGORY: Record<FileIconCategory, string> = {
   document: '/icons/google-docs.png',
   spreadsheet: '/icons/sheets.png',
   presentation: '/icons/ppt.png',
   pdf: '/icons/pdf.png',
-  image: '/icons/png-file-.png',
+  image: '/icons/photo.png',
   video: '/icons/youtube.png',
   archive: '/icons/zip_6354365.png',
   audio: '/icons/audio_5799124.png',
   code: '/icons/code_4997543.png',
   generic: '/icons/file.png',
+  compressed: '/icons/zip_6354365.png',
 };
 
 export const FILE_ICON_CATEGORY_BY_EXTENSION: Record<string, FileIconCategory> = {

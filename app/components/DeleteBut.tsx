@@ -24,23 +24,34 @@ const DeleteBut = ({ fileId, fileName }: { fileId: string; fileName?: string }) 
 
   const deleteUploadedFile = async (): Promise<void> => {
     setLoading(true);
+
     try {
       const doc = await client.getDocument(fileId);
+
       const assetRef =
         doc?.file?.asset?._ref ||
         doc?.image?.asset?._ref;
 
       if (assetRef) {
-        const referencesCount = await client.fetch(
-          `count(*[_id != $docId && references($assetId)])`,
-          { assetId: assetRef, docId: fileId }
+        // 🔍 Find ALL documents referencing this asset
+        const refs: string[] = await client.fetch(
+          `*[_type != "sanity.fileAsset" && _type != "sanity.imageAsset" && references($assetId)]._id`,
+          { assetId: assetRef }
         );
 
-        if (referencesCount === 0) {
-          await client.delete(assetRef);
+        // 🧹 Remove references from ALL docs
+        for (const refId of refs) {
+          await client
+            .patch(refId)
+            .unset(["file", "image"])
+            .commit();
         }
+
+        // 🗑️ Now safely delete asset
+        await client.delete(assetRef);
       }
 
+      // 🗑️ Delete main document
       await client.delete(fileId);
 
       setOpen(false);
@@ -48,15 +59,16 @@ const DeleteBut = ({ fileId, fileName }: { fileId: string; fileName?: string }) 
       toast({
         title: 'File deleted',
         description: fileName || 'Deleted successfully',
-        variant: 'success'
+        variant: 'success',
       });
 
     } catch (error) {
       toast({
         title: 'Error',
-        description: error instanceof Error
-          ? error.message
-          : 'Error deleting file',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Error deleting file',
         variant: 'destructive',
       });
     } finally {
