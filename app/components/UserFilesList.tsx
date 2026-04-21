@@ -150,7 +150,7 @@ const UserFilesList = ({ files, currentKey }: { files: UserFileItem[]; currentKe
           filteredFiles.map((item, index) => (
             <Card
               key={item._id}
-              className='hover-lift animate-enter overflow-hidden border-border/50 bg-gradient-to-br from-card via-card/95 to-card/90 shadow-sm shadow-black/10 rounded-xl'
+              className='hover-lift animate-enter flex h-full flex-col overflow-hidden rounded-xl border-border/50 bg-gradient-to-br from-card via-card/95 to-card/90 shadow-sm shadow-black/10'
               style={{ animationDelay: `${index * 65}ms` }}
             >
               <div className='h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500' />
@@ -250,7 +250,7 @@ const UserFilesList = ({ files, currentKey }: { files: UserFileItem[]; currentKe
                   </p>
                 ) : null}
               </CardHeader>
-              <CardContent className='px-5 pb-4'>
+              <CardContent className='mt-auto px-5 pb-4'>
                   <FileActions
                     file={{ _id: item._id, filename: item.filename, fileUrl: item.fileUrl, tags: item.tags, note: item.note }}
                     currentKey={currentKey}

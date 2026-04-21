@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/app/components/ui/toaster";
 import { ThemeProvider } from "@/app/components/theme-provider";
+import { CursorProvider } from "@/app/components/cursor-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,7 +36,9 @@ export default function RootLayout({
           storageKey="sanity-hub-theme"
           themes={["light", "dark", "pure-dark"]}
         >
-          {children}
+          <CursorProvider>
+            {children}
+          </CursorProvider>
           <Toaster />
         </ThemeProvider>
       </body>

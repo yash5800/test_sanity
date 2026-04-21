@@ -3,6 +3,7 @@ import { Sparkles, ShieldCheck } from "lucide-react";
 
 import { Badge } from "@/app/components/ui/badge";
 import { ThemeSelector } from "@/app/components/theme-selector";
+import { CursorSelector } from "@/app/components/cursor-selector";
 
 const Hero = () => {
   return (
@@ -18,12 +19,13 @@ const Hero = () => {
           </span>
         </Link>
 
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <Badge className="gap-1.5 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-foreground/80 border border-blue-500/30 font-semibold">
             <ShieldCheck className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
             <span className="hidden sm:inline">Private workspace</span>
             <span className="sm:hidden">Private</span>
           </Badge>
+          <CursorSelector />
           <ThemeSelector />
         </div>
       </div>
