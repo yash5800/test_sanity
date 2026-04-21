@@ -1,16 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { wipeSanityFilesByKeyWithCleanup } from '@/sanity/lib/file-actions';
+import { wipeSanityFilesByKeyWithCleanup, verifyKeyOwnership } from '@/sanity/lib/file-actions';
 
 export const runtime = 'nodejs';
+
+const MIN_KEY_LENGTH = 4;
+const MAX_KEY_LENGTH = 100;
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const key = typeof body.key === 'string' ? body.key.trim() : '';
 
-    if (!key) {
-      return NextResponse.json({ error: 'key is required' }, { status: 400 });
+    if (!key || key.length < MIN_KEY_LENGTH || key.length > MAX_KEY_LENGTH) {
+      return NextResponse.json({ error: 'Invalid key' }, { status: 400 });
+    }
+
+    const hasFiles = await verifyKeyOwnership(key);
+    if (!hasFiles) {
+      return NextResponse.json({ error: 'No files found for this key' }, { status: 404 });
     }
 
     const result = await wipeSanityFilesByKeyWithCleanup(key);

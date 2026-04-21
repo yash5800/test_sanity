@@ -122,6 +122,7 @@ export {
   AlertDialogHeader,
   AlertDialogIcon,
   AlertDialogOverlay,
+  AlertDialogPortal,
   AlertDialogPrimaryAction,
   AlertDialogSecondaryAction,
   AlertDialogTitle,

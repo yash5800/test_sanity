@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from 'react';
-import { Edit3, FolderInput, Loader2, MoreHorizontal, NotebookPen, Tags } from 'lucide-react';
+import { Edit3, FolderInput, Loader2, MoreHorizontal, NotebookPen, Tags, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import DeleteBut from './DeleteBut';
@@ -38,6 +38,7 @@ const FileActions = ({ file, currentKey }: FileActionsProps) => {
   const [isCopyOpen, setCopyOpen] = useState(false);
   const [isMetadataOpen, setMetadataOpen] = useState(false);
   const [isOptionsOpen, setOptionsOpen] = useState(false);
+  const [isDeleteOpen, setDeleteOpen] = useState(false);
   const [renameValue, setRenameValue] = useState(file.filename);
   const [copyKeyValue, setCopyKeyValue] = useState('');
   const [tagsValue, setTagsValue] = useState((file.tags ?? []).join(', '));
@@ -136,13 +137,12 @@ const FileActions = ({ file, currentKey }: FileActionsProps) => {
   return (
     <div className='space-y-3'>
       <div className='flex flex-wrap gap-2'>
-        <DownloadBut file={{ _id: file._id, filename: file.filename }} />
-        <ShareBut file={{ _id: file._id, filename: file.filename, fileUrl: file.fileUrl }} />
+        <DownloadBut file={{ _id: file._id, filename: file.filename }} workspaceKey={currentKey} />
+        <ShareBut file={{ _id: file._id, filename: file.filename, fileUrl: file.fileUrl }} workspaceKey={currentKey} />
         <Button type='button' variant='outline' size='sm' className='rounded-full' onClick={() => setOptionsOpen(true)}>
           <MoreHorizontal className='h-4 w-4' />
           More
         </Button>
-        <DeleteBut fileId={file._id} fileName={file.filename} />
       </div>
 
       <AlertDialog
@@ -152,7 +152,7 @@ const FileActions = ({ file, currentKey }: FileActionsProps) => {
         }}
       >
         <AlertDialogContent className='max-w-md gap-0 border-border/70 bg-card p-0 shadow-[0_18px_50px_rgba(15,23,42,0.18)]'>
-          <div className='h-1.5 bg-gradient-to-r from-primary via-chart-2 to-chart-4' />
+          <div className='h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500' />
           <AlertDialogHeader className='space-y-2 px-6 pb-3 pt-6 text-left'>
             <AlertDialogTitle>More file options</AlertDialogTitle>
             <AlertDialogDescription className='text-sm leading-relaxed'>
@@ -196,6 +196,18 @@ const FileActions = ({ file, currentKey }: FileActionsProps) => {
               <FolderInput className='h-4 w-4' />
               Copy to key
             </Button>
+            <Button
+              type='button'
+              variant='outline'
+              className='h-11 w-full justify-start rounded-2xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive'
+              onClick={() => {
+                setOptionsOpen(false);
+                setTimeout(() => setDeleteOpen(true), 50);
+              }}
+            >
+              <Trash2 className='h-4 w-4' />
+              Delete file
+            </Button>
           </div>
           <AlertDialogFooter className='gap-2 px-6 pb-6 pt-2 sm:justify-end'>
             <Button type='button' variant='outline' className='h-11 rounded-full' onClick={() => setOptionsOpen(false)}>
@@ -204,6 +216,16 @@ const FileActions = ({ file, currentKey }: FileActionsProps) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <DeleteBut
+        fileId={file._id}
+        workspaceKey={currentKey}
+        fileName={file.filename}
+        buttonLabel='Delete'
+        buttonVariant='destructive'
+        isOpen={isDeleteOpen}
+        onOpenChange={setDeleteOpen}
+      />
 
       <AlertDialog
         open={isRenameOpen}
@@ -219,7 +241,7 @@ const FileActions = ({ file, currentKey }: FileActionsProps) => {
         }}
       >
         <AlertDialogContent className='max-w-lg gap-0 border-border/70 bg-card p-0 shadow-[0_18px_50px_rgba(15,23,42,0.18)]'>
-          <div className='h-1.5 bg-gradient-to-r from-primary via-chart-2 to-chart-4' />
+          <div className='h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500' />
           <AlertDialogHeader className='space-y-2 px-6 pb-3 pt-6 text-left'>
             <AlertDialogTitle>Rename file</AlertDialogTitle>
             <AlertDialogDescription className='text-sm leading-relaxed'>
@@ -275,7 +297,7 @@ const FileActions = ({ file, currentKey }: FileActionsProps) => {
         }}
       >
         <AlertDialogContent className='max-w-lg gap-0 border-border/70 bg-card p-0 shadow-[0_18px_50px_rgba(15,23,42,0.18)]'>
-          <div className='h-1.5 bg-gradient-to-r from-primary via-chart-2 to-chart-4' />
+          <div className='h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500' />
           <AlertDialogHeader className='space-y-2 px-6 pb-3 pt-6 text-left'>
             <AlertDialogTitle>Edit file metadata</AlertDialogTitle>
             <AlertDialogDescription className='text-sm leading-relaxed'>
@@ -350,7 +372,7 @@ const FileActions = ({ file, currentKey }: FileActionsProps) => {
         }}
       >
         <AlertDialogContent className='max-w-lg gap-0 border-border/70 bg-card p-0 shadow-[0_18px_50px_rgba(15,23,42,0.18)]'>
-          <div className='h-1.5 bg-gradient-to-r from-primary via-chart-2 to-chart-4' />
+          <div className='h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500' />
           <AlertDialogHeader className='space-y-2 px-6 pb-3 pt-6 text-left'>
             <AlertDialogTitle>Copy file to another key</AlertDialogTitle>
             <AlertDialogDescription className='text-sm leading-relaxed'>

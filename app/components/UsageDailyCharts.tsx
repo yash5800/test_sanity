@@ -24,8 +24,8 @@ interface DailyUsagePoint {
 const UsageDailyCharts = ({ data }: { data: DailyUsagePoint[] }) => {
   return (
     <div className='grid gap-4 lg:grid-cols-2'>
-      <Card className='hover-lift animate-enter overflow-hidden border-border/70 bg-card/90 shadow-sm shadow-black/10'>
-        <div className='h-1.5 bg-gradient-to-r from-chart-2 via-primary to-chart-4' />
+      <Card className='hover-lift animate-enter overflow-hidden border-border/50 bg-gradient-to-br from-card via-card/95 to-card/90 shadow-sm shadow-black/10 rounded-xl'>
+        <div className='h-1.5 bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500' />
         <CardHeader>
           <CardTitle className='text-xl'>Daily uploads</CardTitle>
         </CardHeader>
@@ -34,8 +34,8 @@ const UsageDailyCharts = ({ data }: { data: DailyUsagePoint[] }) => {
             <AreaChart data={data} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
               <defs>
                 <linearGradient id='uploadsGradient' x1='0' y1='0' x2='0' y2='1'>
-                  <stop offset='0%' stopColor='hsl(var(--chart-2))' stopOpacity={0.45} />
-                  <stop offset='95%' stopColor='hsl(var(--chart-2))' stopOpacity={0.02} />
+                  <stop offset='0%' stopColor='#a855f7' stopOpacity={0.45} />
+                  <stop offset='95%' stopColor='#a855f7' stopOpacity={0.02} />
                 </linearGradient>
               </defs>
               <CartesianGrid stroke='hsl(var(--border))' strokeDasharray='3 3' vertical={false} />
@@ -51,10 +51,10 @@ const UsageDailyCharts = ({ data }: { data: DailyUsagePoint[] }) => {
               <Area
                 type='monotone'
                 dataKey='uploads'
-                stroke='hsl(var(--chart-2))'
+                stroke='#a855f7'
                 fill='url(#uploadsGradient)'
                 strokeWidth={2.2}
-                dot={{ r: 2.5, fill: 'hsl(var(--chart-2))' }}
+                dot={{ r: 2.5, fill: '#a855f7' }}
                 activeDot={{ r: 4 }}
               />
             </AreaChart>
@@ -62,8 +62,8 @@ const UsageDailyCharts = ({ data }: { data: DailyUsagePoint[] }) => {
         </CardContent>
       </Card>
 
-      <Card className='hover-lift animate-enter overflow-hidden border-border/70 bg-card/90 shadow-sm shadow-black/10' style={{ animationDelay: '80ms' }}>
-        <div className='h-1.5 bg-gradient-to-r from-primary via-chart-4 to-chart-2' />
+      <Card className='hover-lift animate-enter overflow-hidden border-border/50 bg-gradient-to-br from-card via-card/95 to-card/90 shadow-sm shadow-black/10 rounded-xl' style={{ animationDelay: '80ms' }}>
+        <div className='h-1.5 bg-gradient-to-r from-blue-500 via-pink-500 to-purple-500' />
         <CardHeader>
           <CardTitle className='text-xl'>Daily storage growth</CardTitle>
         </CardHeader>
@@ -88,7 +88,7 @@ const UsageDailyCharts = ({ data }: { data: DailyUsagePoint[] }) => {
                   background: 'hsl(var(--card))',
                 }}
               />
-              <Bar dataKey='bytes' radius={[8, 8, 0, 0]} fill='hsl(var(--primary))' maxBarSize={32} />
+              <Bar dataKey='bytes' radius={[8, 8, 0, 0]} fill='#2563eb' maxBarSize={32} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>

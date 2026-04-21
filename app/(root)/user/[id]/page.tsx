@@ -24,9 +24,9 @@ const page = async ({
   return (
     <main className='space-y-6'>
        <section className='grid gap-6 lg:grid-cols-[0.95fr_1.05fr]'>
-          <Card className='border-border/70 bg-card/80 shadow-sm'>
+          <Card className='border-border/50 bg-gradient-to-br from-card via-card/95 to-card/90 shadow-lg'>
             <CardHeader>
-              <Badge className='w-fit rounded-full bg-secondary text-secondary-foreground'>Workspace</Badge>
+              <Badge className='w-fit rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 font-semibold'>Workspace</Badge>
               <CardTitle className='text-3xl'>Your file dashboard</CardTitle>
               <CardDescription>
                 Manage uploads for the current key, keep an eye on storage, and share files from one place.

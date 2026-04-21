@@ -91,7 +91,7 @@ const UserFilesList = ({ files, currentKey }: { files: UserFileItem[]; currentKe
 
         <div className='flex flex-col gap-3 rounded-[1.4rem] border border-border/70 bg-background/70 p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between'>
           <div className='flex flex-wrap gap-2'>
-            <span className='inline-flex items-center gap-2 rounded-full bg-secondary/90 px-3 py-1 text-xs font-medium text-secondary-foreground'>
+            <span className='inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 px-3 py-1 text-xs font-medium text-blue-600 dark:text-blue-400'>
               <SlidersHorizontal className='h-3.5 w-3.5' />
               Type
             </span>
@@ -110,7 +110,7 @@ const UserFilesList = ({ files, currentKey }: { files: UserFileItem[]; currentKe
           </div>
 
           <div className='flex flex-wrap gap-2'>
-            <span className='inline-flex items-center gap-2 rounded-full bg-secondary/90 px-3 py-1 text-xs font-medium text-secondary-foreground'>
+            <span className='inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 px-3 py-1 text-xs font-medium text-blue-600 dark:text-blue-400'>
               <SlidersHorizontal className='h-3.5 w-3.5' />
               Sort
             </span>
@@ -150,14 +150,14 @@ const UserFilesList = ({ files, currentKey }: { files: UserFileItem[]; currentKe
           filteredFiles.map((item, index) => (
             <Card
               key={item._id}
-              className='hover-lift animate-enter overflow-hidden border-border/70 bg-card/90 shadow-sm shadow-black/10'
+              className='hover-lift animate-enter overflow-hidden border-border/50 bg-gradient-to-br from-card via-card/95 to-card/90 shadow-sm shadow-black/10 rounded-xl'
               style={{ animationDelay: `${index * 65}ms` }}
             >
-              <div className='h-1.5 bg-gradient-to-r from-primary via-chart-2 to-chart-4' />
+              <div className='h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500' />
               <CardHeader className='space-y-3 p-5 pb-3'>
                 <div className='flex items-start justify-between gap-3'>
                   <div className='flex min-w-0 flex-1 items-center gap-3'>
-                    <div className='flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary/10 p-2'>
+                    <div className='flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-blue-500/10 p-2'>
                       {getFileIconCategory(item.filename, item.fileUrl) === 'generic' ? (
                         <FILE_ICON_FALLBACK_ICON className='h-7 w-7 text-muted-foreground' aria-hidden='true' />
                       ) : (
@@ -177,7 +177,7 @@ const UserFilesList = ({ files, currentKey }: { files: UserFileItem[]; currentKe
                         </span>
                         <span className='hidden truncate sm:block'>{item.filename.split('.').slice(0, -1).join('.') || item.filename}</span>
                       </h1>
-                      <Badge className='w-fit rounded-full border border-border/70 bg-secondary/70 text-secondary-foreground'>
+                      <Badge className='w-fit rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium'>
                         {getFileExtension(item.filename, item.fileUrl).toUpperCase() || 'FILE'}
                       </Badge>
                     </div>
@@ -198,7 +198,7 @@ const UserFilesList = ({ files, currentKey }: { files: UserFileItem[]; currentKe
                       <Info className={`h-4 w-4 ${expandedMobileDetailsId === item._id ? 'text-primary' : 'text-muted-foreground'}`} />
                     </Button>
                     <Badge
-                      className={`rounded-full ${item.copiedFromId ? 'bg-chart-2/20 text-chart-2' : 'bg-secondary text-secondary-foreground'}`}
+                      className={`rounded-full ${item.copiedFromId ? 'bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30' : 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30'}`}
                     >
                       {item.copiedFromId ? 'Clone' : 'Stored'}
                     </Badge>
@@ -209,7 +209,7 @@ const UserFilesList = ({ files, currentKey }: { files: UserFileItem[]; currentKe
                     expandedMobileDetailsId === item._id ? 'flex animate-enter' : 'hidden'
                   }`}
                 >
-                  <CalendarClock className='h-4 w-4 text-chart-2' aria-hidden='true' />
+                  <CalendarClock className='h-4 w-4 text-purple-600 dark:text-purple-400' aria-hidden='true' />
                   <p>
                     {new Date(item._createdAt).toLocaleDateString('en-US', {
                       month: 'long',
@@ -223,7 +223,7 @@ const UserFilesList = ({ files, currentKey }: { files: UserFileItem[]; currentKe
                     expandedMobileDetailsId === item._id ? 'flex animate-enter' : 'hidden'
                   }`}
                 >
-                  <span className='inline-flex items-center rounded-full bg-secondary/80 px-2.5 py-1 text-xs font-medium text-secondary-foreground'>
+                  <span className='inline-flex items-center rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 px-2.5 py-1 text-xs font-medium text-blue-600 dark:text-blue-400'>
                     {typeof item.size === 'number' ? formatBytes(item.size) : 'Size unknown'}
                   </span>
                 </div>

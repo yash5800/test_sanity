@@ -11,6 +11,49 @@ type FileDocument = {
   };
 };
 
+export const verifyFileOwnership = async (fileId: string, key: string): Promise<boolean> => {
+  const trimmedKey = key.trim();
+  
+  if (!fileId || !trimmedKey) {
+    return false;
+  }
+
+  const doc = await client.fetch<{ _id: string } | null>(
+    `*[_type == "post" && _id == $fileId && key == $key][0]._id`,
+    { fileId, key: trimmedKey },
+  );
+
+  return doc !== null;
+};
+
+export const verifyKeyOwnership = async (key: string): Promise<boolean> => {
+  const trimmedKey = key.trim();
+  
+  if (!trimmedKey) {
+    return false;
+  }
+
+  if (trimmedKey.length < 4) {
+    return false;
+  }
+
+  const exists = await client.fetch<boolean>(
+    `count(*[_type == "post" && key == $key]) > 0`,
+    { key: trimmedKey },
+  );
+
+  return exists;
+};
+
+const MAX_FILENAME_LENGTH = 255;
+const MAX_TAG_LENGTH = 50;
+const MAX_TAGS_COUNT = 10;
+const MAX_NOTE_LENGTH = 1000;
+
+const sanitizeString = (input: string, maxLength: number): string => {
+  return input.slice(0, maxLength).replace(/[<>]/g, '');
+};
+
 export const renameSanityFile = async (fileId: string, filename: string) => {
   const trimmedName = filename.trim();
 
@@ -18,7 +61,13 @@ export const renameSanityFile = async (fileId: string, filename: string) => {
     throw new Error('File name cannot be empty');
   }
 
-  return client.patch(fileId).set({ filename: trimmedName }).commit();
+  if (trimmedName.length > MAX_FILENAME_LENGTH) {
+    throw new Error(`File name too long (max ${MAX_FILENAME_LENGTH} characters)`);
+  }
+
+  const sanitized = sanitizeString(trimmedName, MAX_FILENAME_LENGTH);
+
+  return client.patch(fileId).set({ filename: sanitized }).commit();
 };
 
 export const copySanityFileToKey = async (fileId: string, key: string, filename?: string) => {
@@ -61,14 +110,20 @@ export const copySanityFileToKey = async (fileId: string, key: string, filename?
 };
 
 export const updateSanityFileMetadata = async (fileId: string, tags: string[], note: string) => {
-  const cleanedTags = Array.from(new Set(tags.map((tag) => tag.trim()).filter(Boolean)));
+  const uniqueTags = Array.from(new Set(tags.map((tag) => tag.trim()).filter(Boolean)));
+  const sanitizedTags = uniqueTags.slice(0, MAX_TAGS_COUNT).map((tag) => sanitizeString(tag, MAX_TAG_LENGTH));
   const trimmedNote = note.trim();
+  const sanitizedNote = sanitizeString(trimmedNote, MAX_NOTE_LENGTH);
+
+  if (sanitizedNote.length > MAX_NOTE_LENGTH) {
+    throw new Error(`Note too long (max ${MAX_NOTE_LENGTH} characters)`);
+  }
 
   return client
     .patch(fileId)
     .set({
-      tags: cleanedTags,
-      note: trimmedNote,
+      tags: sanitizedTags,
+      note: sanitizedNote,
     })
     .commit();
 };

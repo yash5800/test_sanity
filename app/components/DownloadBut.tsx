@@ -6,7 +6,7 @@ import { Download, Loader2 } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { downloadFileWithProgress } from './download-client';
 
-const DownloadBut = ({ file }: { file: { _id: string; filename: string } }) => {
+const DownloadBut = ({ file, workspaceKey }: { file: { _id: string; filename: string }; workspaceKey: string }) => {
   const [isDownloading, setDownloading] = useState(false);
 
   const handleDownload = async () => {
@@ -14,7 +14,7 @@ const DownloadBut = ({ file }: { file: { _id: string; filename: string } }) => {
 
     try {
       await downloadFileWithProgress({
-        url: `/api/files/download/${file._id}`,
+        url: `/api/files/download/${file._id}?key=${encodeURIComponent(workspaceKey)}`,
         filename: file.filename,
       });
     } finally {

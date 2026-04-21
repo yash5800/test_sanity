@@ -26,6 +26,12 @@ export const Post = defineType({
       validation:(rule)=>rule.required()
     }),
     defineField({
+      name: 'size',
+      type: 'number',
+      readOnly: true,
+      description: "File size in bytes"
+    }),
+    defineField({
       name: 'copiedFromId',
       type: 'string',
       readOnly: true,

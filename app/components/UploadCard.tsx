@@ -8,11 +8,22 @@ import { FileUp, ImagePlus, Loader2, Sparkles, UploadCloud } from 'lucide-react'
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 
+const formatBytes = (bytes: number): string => {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+};
+
 const UploadCard = ({uploadKey}:{uploadKey:string}) => {
   const [isUploading,setUploading] = useState(false);
   const [selectedCount, setSelectedCount] = useState(0);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [activeFileName, setActiveFileName] = useState<string | null>(null);
+  const [activeFileSize, setActiveFileSize] = useState<number>(0);
+  const [loadedBytes, setLoadedBytes] = useState<number>(0);
+  const [totalBytes, setTotalBytes] = useState<number>(0);
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const router = useRouter();
@@ -83,11 +94,21 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
           setUploading(true);
           setUploadProgress(0);
           setActiveFileName(files[0]?.name ?? null);
+          setActiveFileSize(files[0]?.size ?? 0);
 
-          await uploadManyToSanity(uploadKey, files, ({ completed, total, file }) => {
-            setUploadProgress(Math.round((completed / total) * 100));
+          await uploadManyToSanity(uploadKey, files, ({ percent, file, loadedBytes: loaded, totalBytes: total }) => {
+            setUploadProgress(percent);
             setActiveFileName(file.name);
+            setActiveFileSize(file.size);
+            setLoadedBytes(loaded);
+            setTotalBytes(total);
           });
+          
+          setUploadProgress(100);
+          setLoadedBytes(0);
+          setTotalBytes(0);
+          
+          await new Promise(resolve => setTimeout(resolve, 300));
           
           toast({
             title:"success",
@@ -96,7 +117,6 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
           })
           router.refresh();
           setSelectedCount(0);
-          setUploadProgress(100);
           setUploading(false);
         }
         catch (e: unknown) {
@@ -117,20 +137,22 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
           setUploading(false);
         } finally {
           setActiveFileName(null);
+          setLoadedBytes(0);
+          setTotalBytes(0);
         }
         
   }
 
   return (
-    <Card className="overflow-hidden border-border/70 bg-card/90 shadow-lg shadow-black/10 backdrop-blur">
-      <div className="h-2 bg-gradient-to-r from-chart-2 via-primary to-chart-4" />
+    <Card className="overflow-hidden border-border/50 bg-gradient-to-br from-card via-card/95 to-card/90 shadow-lg shadow-black/20 backdrop-blur-xl rounded-xl">
+      <div className="h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-2xl">
-          <UploadCloud className="h-5 w-5 text-primary" />
+          <UploadCloud className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           Upload file
         </CardTitle>
         <CardDescription className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-chart-4" />
+          <Sparkles className="h-4 w-4 text-purple-500" />
           Pick a file and send it straight to your private storage bucket.
         </CardDescription>
       </CardHeader>
@@ -145,7 +167,7 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
        />
        <div
          className={`rounded-[1.25rem] border border-dashed p-4 transition-colors sm:p-5 ${
-           isDragging ? 'border-primary bg-primary/10' : 'border-border/70 bg-background/60'
+           isDragging ? 'border-blue-500 bg-blue-500/10' : 'border-border/70 bg-background/60'
          } ${isUploading ? 'pointer-events-none opacity-80' : ''}`}
          onDragOver={handleDragOver}
          onDragLeave={handleDragLeave}
@@ -153,7 +175,7 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
        >
          <div className='flex flex-col items-center gap-3 text-center'>
            <div className='rounded-full border border-border/80 bg-card/80 p-2'>
-             {isUploading ? <Loader2 className='h-5 w-5 animate-spin text-primary' /> : <FileUp className='h-5 w-5 text-primary' />}
+             {isUploading ? <Loader2 className='h-5 w-5 animate-spin text-blue-600 dark:text-blue-400' /> : <FileUp className='h-5 w-5 text-blue-600 dark:text-blue-400' />}
            </div>
            <div className='space-y-1'>
              <p className='text-sm font-medium'>
@@ -163,7 +185,7 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
                or use the button below to choose files
              </p>
            </div>
-           <Button className="h-10 rounded-xl px-4" variant="secondary" onClick={handleOnClick} type="button" disabled={isUploading}>
+           <Button className="h-10 rounded-xl px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold" onClick={handleOnClick} type="button" disabled={isUploading}>
              {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
              {isUploading ? "Uploading..." : "Choose files"}
            </Button>
@@ -173,21 +195,33 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
          <div className="space-y-3 rounded-[1.25rem] border border-border/70 bg-background/70 p-4 shadow-sm">
            <div className="flex items-center justify-between gap-3 text-sm">
              <span className="font-medium">Uploading files</span>
-             <span className="text-muted-foreground">{uploadProgress}%</span>
+             <div className="flex items-center gap-2 text-muted-foreground">
+               {activeFileSize > 0 && (
+                 <span className="text-xs">{formatBytes(activeFileSize)}</span>
+               )}
+               <span>{uploadProgress}%</span>
+             </div>
            </div>
            <div className="h-2 overflow-hidden rounded-full bg-muted">
              <div
-               className="h-full rounded-full bg-primary transition-all duration-300 ease-out"
+               className="h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300 ease-out"
                style={{ width: `${uploadProgress}%` }}
              />
            </div>
-           <p className='text-xs text-muted-foreground'>
-             {activeFileName ? `Working on ${activeFileName}` : 'Preparing your files for upload'}
-           </p>
+           <div className='flex items-center justify-between text-xs text-muted-foreground'>
+             <p>
+               {activeFileName ? `Working on ${activeFileName}` : 'Preparing your files for upload'}
+             </p>
+             {loadedBytes > 0 && totalBytes > 0 && (
+               <span className='font-medium text-foreground'>
+                 {formatBytes(loadedBytes)} / {formatBytes(totalBytes)}
+               </span>
+             )}
+           </div>
          </div>
        ) : null}
-       <div className='flex items-center gap-3 rounded-[1.25rem] border border-border/70 bg-gradient-to-r from-primary/8 via-background to-chart-2/8 p-3 text-sm text-muted-foreground'>
-         <ImagePlus className='h-4 w-4 text-primary' />
+       <div className='flex items-center gap-3 rounded-[1.25rem] border border-border/70 bg-gradient-to-r from-blue-500/8 via-background to-purple-500/8 p-3 text-sm text-muted-foreground'>
+         <ImagePlus className='h-4 w-4 text-blue-600 dark:text-blue-400' />
          <p>
            {selectedCount > 0 ? `${selectedCount} file${selectedCount > 1 ? 's' : ''} selected` : 'You can select multiple files at once'}
          </p>

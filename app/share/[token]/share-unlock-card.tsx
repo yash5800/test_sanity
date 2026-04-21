@@ -123,13 +123,13 @@ const ShareUnlockCard = ({ token }: { token: string }) => {
         </div>
         <div className='space-y-3 rounded-2xl border border-border/70 bg-background/70 px-4 py-4 text-sm text-muted-foreground'>
           <div className='flex items-center gap-3'>
-            {status === 'done' ? <CheckCircle2 className='h-4 w-4 text-emerald-500' /> : <RefreshCw className='h-4 w-4 animate-spin text-primary' />}
+            {status === 'done' ? <CheckCircle2 className='h-4 w-4 text-emerald-500' /> : <RefreshCw className='h-4 w-4 animate-spin text-blue-600 dark:text-blue-400' />}
             <span>{status === 'done' ? 'Downloaded. Redirecting home...' : 'Downloading securely...'}</span>
           </div>
           {progress ? (
             <div className='space-y-2'>
               <div className='h-2 overflow-hidden rounded-full bg-muted'>
-                <div className='h-full rounded-full bg-primary transition-all duration-300' style={{ width: `${progress.percent}%` }} />
+                <div className='h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300' style={{ width: `${progress.percent}%` }} />
               </div>
             </div>
           ) : null}
@@ -166,7 +166,7 @@ const ShareUnlockCard = ({ token }: { token: string }) => {
 
         <Button
           type='button'
-          className='h-11 rounded-full'
+          className='h-11 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold gap-2'
           onClick={unlockAndDownload}
           disabled={passcode.trim().length === 0}
         >

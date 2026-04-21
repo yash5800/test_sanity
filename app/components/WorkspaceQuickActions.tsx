@@ -67,7 +67,7 @@ const WorkspaceQuickActions = ({ workspaceKey }: { workspaceKey: string }) => {
       </Link>
       <Link
         href='#files'
-        className='inline-flex h-9 items-center justify-center gap-2 rounded-full bg-primary px-3 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90'
+        className='inline-flex h-9 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-3 text-sm font-medium text-white shadow-lg shadow-blue-500/30 transition-all'
       >
         <FileText className='h-4 w-4' />
         Files

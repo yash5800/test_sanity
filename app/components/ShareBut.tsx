@@ -22,7 +22,7 @@ const durationOptions = [
   { label: '7 days', value: 168 },
 ] as const;
 
-const ShareBut = ({ file }: { file: { _id: string; filename: string; fileUrl: string } }) => {
+const ShareBut = ({ file, workspaceKey }: { file: { _id: string; filename: string; fileUrl: string }; workspaceKey: string }) => {
   const { toast } = useToast();
   const [isOpen, setOpen] = useState(false);
   const [isSharing, setSharing] = useState(false);
@@ -42,6 +42,7 @@ const ShareBut = ({ file }: { file: { _id: string; filename: string; fileUrl: st
         },
         body: JSON.stringify({
           fileId: file._id,
+          key: workspaceKey,
           durationHours,
           passcode: trimmedPasscode,
         }),
