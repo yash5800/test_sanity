@@ -4,10 +4,12 @@ import { useState } from 'react';
 import { Download, Loader2 } from 'lucide-react';
 
 import { Button } from '@/app/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 import { downloadFileWithProgress } from './download-client';
 
 const DownloadBut = ({ file, workspaceKey }: { file: { _id: string; filename: string }; workspaceKey: string }) => {
   const [isDownloading, setDownloading] = useState(false);
+  const { toast } = useToast();
 
   const handleDownload = async () => {
     setDownloading(true);
@@ -16,6 +18,12 @@ const DownloadBut = ({ file, workspaceKey }: { file: { _id: string; filename: st
       await downloadFileWithProgress({
         url: `/api/files/download/${file._id}?key=${encodeURIComponent(workspaceKey)}`,
         filename: file.filename,
+      });
+    } catch (error) {
+      toast({
+        title: 'Download failed',
+        description: error instanceof Error ? error.message : 'Unable to download file',
+        variant: 'destructive',
       });
     } finally {
       setDownloading(false);

@@ -12,6 +12,14 @@ type DownloadOptions = {
   onProgress?: (progress: DownloadProgressState) => void;
 };
 
+const safeDecodeFilename = (value: string) => {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+};
+
 const createObjectUrlDownload = (blob: Blob, filename: string) => {
   const objectUrl = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
@@ -70,7 +78,9 @@ export const downloadFileWithProgress = ({
 
       const contentDisposition = request.getResponseHeader('Content-Disposition') || '';
       const filenameMatch = contentDisposition.match(/filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i);
-      const resolvedFilename = decodeURIComponent(filenameMatch?.[1] || filenameMatch?.[2] || filename);
+      const encodedFilename = filenameMatch?.[1];
+      const rawFilename = filenameMatch?.[2] || filename;
+      const resolvedFilename = encodedFilename ? safeDecodeFilename(encodedFilename) : rawFilename;
 
       createObjectUrlDownload(request.response, resolvedFilename);
       resolve();
