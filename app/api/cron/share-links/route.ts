@@ -31,11 +31,9 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const fileExpiryCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-
     const [deletedShareLinks, expiredFiles, expiredNotes] = await Promise.all([
       deleteExpiredShareLinks(),
-      deleteExpiredFilesByAge(fileExpiryCutoff),
+      deleteExpiredFilesByAge(),
       deleteExpiredCodeNotes(),
     ]);
 

@@ -2,7 +2,7 @@ import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypt
 
 import { client } from './client';
 
-export const SHARE_DURATION_OPTIONS = [1, 24, 72, 168] as const;
+export const SHARE_DURATION_OPTIONS = [1, 2, 4] as const;
 
 const toHexHash = (value: string) => createHash('sha256').update(value).digest('hex');
 

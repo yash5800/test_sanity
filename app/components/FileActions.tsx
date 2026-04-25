@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from 'react';
-import { Edit3, FolderInput, Loader2, MoreHorizontal, NotebookPen, Tags, Trash2 } from 'lucide-react';
+import { Edit3, Loader2, MoreHorizontal, NotebookPen, Tags, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import DeleteBut from './DeleteBut';
@@ -18,7 +18,7 @@ import {
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { copySanityFileToKey, renameSanityFile, updateSanityFileMetadata } from '@/sanity/lib/file-actions';
+import { renameSanityFile, updateSanityFileMetadata } from '@/sanity/lib/file-actions';
 
 type FileActionsProps = {
   file: {
@@ -35,25 +35,16 @@ const FileActions = ({ file, currentKey }: FileActionsProps) => {
   const router = useRouter();
   const { toast } = useToast();
   const [isRenameOpen, setRenameOpen] = useState(false);
-  const [isCopyOpen, setCopyOpen] = useState(false);
   const [isMetadataOpen, setMetadataOpen] = useState(false);
   const [isOptionsOpen, setOptionsOpen] = useState(false);
   const [isDeleteOpen, setDeleteOpen] = useState(false);
   const [renameValue, setRenameValue] = useState(file.filename);
-  const [copyKeyValue, setCopyKeyValue] = useState('');
   const [tagsValue, setTagsValue] = useState((file.tags ?? []).join(', '));
   const [noteValue, setNoteValue] = useState(file.note ?? '');
   const [isRenaming, setRenaming] = useState(false);
-  const [isCopying, setCopying] = useState(false);
   const [isSavingMetadata, setSavingMetadata] = useState(false);
 
   const trimmedRenameValue = useMemo(() => renameValue.trim(), [renameValue]);
-  const trimmedCopyKeyValue = useMemo(() => copyKeyValue.trim(), [copyKeyValue]);
-  const trimmedCurrentKey = useMemo(() => currentKey.trim(), [currentKey]);
-  const isCopyToSameKey = useMemo(
-    () => trimmedCopyKeyValue.length > 0 && trimmedCopyKeyValue === trimmedCurrentKey,
-    [trimmedCopyKeyValue, trimmedCurrentKey],
-  );
   const parsedTags = useMemo(
     () => tagsValue.split(',').map((tag) => tag.trim()).filter(Boolean),
     [tagsValue],
@@ -78,37 +69,6 @@ const FileActions = ({ file, currentKey }: FileActionsProps) => {
       });
     } finally {
       setRenaming(false);
-    }
-  };
-
-  const handleCopyFile = async () => {
-    if (isCopyToSameKey) {
-      toast({
-        title: 'Invalid target key',
-        description: 'Choose a different key from the current workspace key',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setCopying(true);
-    try {
-      await copySanityFileToKey(file._id, trimmedCopyKeyValue, file.filename);
-      setCopyOpen(false);
-      toast({
-        title: 'File copied',
-        description: `Copied to workspace key ${trimmedCopyKeyValue}`,
-        variant: 'success',
-      });
-      router.refresh();
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Unable to copy file',
-        variant: 'destructive',
-      });
-    } finally {
-      setCopying(false);
     }
   };
 
@@ -183,18 +143,6 @@ const FileActions = ({ file, currentKey }: FileActionsProps) => {
             >
               <NotebookPen className='h-4 w-4' />
               Metadata
-            </Button>
-            <Button
-              type='button'
-              variant='outline'
-              className='h-11 justify-start rounded-2xl'
-              onClick={() => {
-                setOptionsOpen(false);
-                setCopyOpen(true);
-              }}
-            >
-              <FolderInput className='h-4 w-4' />
-              Copy to key
             </Button>
             <Button
               type='button'
@@ -358,68 +306,6 @@ const FileActions = ({ file, currentKey }: FileActionsProps) => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog
-        open={isCopyOpen}
-        onOpenChange={(nextOpen) => {
-          if (isCopying) {
-            return;
-          }
-
-          setCopyOpen(nextOpen);
-          if (!nextOpen) {
-            setCopyKeyValue('');
-          }
-        }}
-      >
-        <AlertDialogContent className='max-w-lg gap-0 border-border/70 bg-card p-0 shadow-[0_18px_50px_rgba(15,23,42,0.18)]'>
-          <div className='h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500' />
-          <AlertDialogHeader className='space-y-2 px-6 pb-3 pt-6 text-left'>
-            <AlertDialogTitle>Copy file to another key</AlertDialogTitle>
-            <AlertDialogDescription className='text-sm leading-relaxed'>
-              This creates a new file record that points to the same uploaded asset. The original file stays in place.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className='space-y-4 px-6 pb-2'>
-            <Input
-              value={copyKeyValue}
-              onChange={(event) => setCopyKeyValue(event.target.value)}
-              placeholder='Target private key'
-              className='h-11 rounded-2xl'
-            />
-            <p className='text-xs text-muted-foreground'>
-              The copied file keeps the same filename and asset, but it becomes a separate document in the target workspace.
-            </p>
-            {isCopyToSameKey ? (
-              <p className='text-xs text-destructive'>
-                Target key must be different from the current key.
-              </p>
-            ) : null}
-          </div>
-          <AlertDialogFooter className='gap-2 px-6 pb-6 pt-1 sm:justify-end'>
-            <Button
-              type='button'
-              variant='outline'
-              className='h-11 rounded-full'
-              onClick={() => {
-                setCopyOpen(false);
-                setCopyKeyValue('');
-              }}
-              disabled={isCopying}
-            >
-              Cancel
-            </Button>
-            <Button
-              type='button'
-              className='h-11 rounded-full'
-              onClick={handleCopyFile}
-              disabled={isCopying || trimmedCopyKeyValue.length === 0 || isCopyToSameKey}
-            >
-              {isCopying ? <Loader2 className='h-4 w-4 animate-spin' /> : <FolderInput className='h-4 w-4' />}
-              {isCopying ? 'Copying...' : 'Copy file'}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };

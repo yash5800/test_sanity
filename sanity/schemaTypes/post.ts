@@ -38,12 +38,6 @@ export const Post = defineType({
       description: 'Automatically removed after 24 hours.',
     }),
     defineField({
-      name: 'copiedFromId',
-      type: 'string',
-      readOnly: true,
-      description: 'When present, this file is a clone created from another file document.'
-    }),
-    defineField({
       name: 'tags',
       type: 'array',
       of: [{ type: 'string' }],
