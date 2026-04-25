@@ -1,16 +1,42 @@
 "use client";
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { BarChart3, Copy, Link2, FileText, UploadCloud } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { BarChart3, FilePlus2, FileText, Link2, UploadCloud } from 'lucide-react';
 
 import { Button } from '@/app/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
-const WorkspaceQuickActions = ({ workspaceKey }: { workspaceKey: string }) => {
+const hideCodeStorageKey = (workspaceKey: string) => `sanityhub:hide-code-space:${workspaceKey}`;
+
+const WorkspaceQuickActions = ({ workspaceKey, currentSpace }: { workspaceKey: string; currentSpace: 'storage' | 'code' }) => {
   const { toast } = useToast();
-  const [isCopyingKey, setCopyingKey] = useState(false);
   const [isCopyingLink, setCopyingLink] = useState(false);
+  const [isCodeSpaceHidden, setCodeSpaceHidden] = useState(false);
+
+  useEffect(() => {
+    const syncHideState = () => {
+      try {
+        const raw = window.localStorage.getItem(hideCodeStorageKey(workspaceKey));
+        setCodeSpaceHidden(raw === '1');
+      } catch {
+        setCodeSpaceHidden(false);
+      }
+    };
+
+    const onHideCodeSpaceChange = (event: Event) => {
+      const customEvent = event as CustomEvent<{ workspaceKey?: string }>;
+      if (customEvent.detail?.workspaceKey && customEvent.detail.workspaceKey !== workspaceKey) return;
+      syncHideState();
+    };
+
+    syncHideState();
+    window.addEventListener('sanityhub:hide-code-space-change', onHideCodeSpaceChange);
+
+    return () => {
+      window.removeEventListener('sanityhub:hide-code-space-change', onHideCodeSpaceChange);
+    };
+  }, [workspaceKey]);
 
   const copyText = async (value: string, label: string) => {
     try {
@@ -30,7 +56,7 @@ const WorkspaceQuickActions = ({ workspaceKey }: { workspaceKey: string }) => {
   };
 
   const copyWorkspaceLink = async () => {
-    const url = `${window.location.origin}/user/${workspaceKey}`;
+    const url = `${window.location.origin}/user/${workspaceKey}?space=${currentSpace}`;
     setCopyingLink(true);
     try {
       await copyText(url, 'Workspace link');
@@ -39,39 +65,40 @@ const WorkspaceQuickActions = ({ workspaceKey }: { workspaceKey: string }) => {
     }
   };
 
-  const copyWorkspaceKey = async () => {
-    setCopyingKey(true);
-    try {
-      await copyText(workspaceKey, 'Workspace key');
-    } finally {
-      setCopyingKey(false);
-    }
-  };
-
   return (
     <div className='flex flex-wrap gap-2'>
-      <Button type='button' variant='outline' size='sm' className='rounded-full' onClick={copyWorkspaceKey} disabled={isCopyingKey}>
-        <Copy className={`h-4 w-4 ${isCopyingKey ? 'animate-pulse' : ''}`} />
-        {isCopyingKey ? 'Copying...' : 'Copy key'}
-      </Button>
       <Button type='button' variant='outline' size='sm' className='rounded-full' onClick={copyWorkspaceLink} disabled={isCopyingLink}>
         <Link2 className={`h-4 w-4 ${isCopyingLink ? 'animate-pulse' : ''}`} />
         {isCopyingLink ? 'Copying...' : 'Copy link'}
       </Button>
-      <Link
-        href='#upload'
-        className='inline-flex h-9 items-center justify-center gap-2 rounded-full border border-input bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground'
-      >
-        <UploadCloud className='h-4 w-4' />
-        Upload
-      </Link>
-      <Link
-        href='#files'
-        className='inline-flex h-9 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-3 text-sm font-medium text-white shadow-lg shadow-blue-500/30 transition-all'
-      >
-        <FileText className='h-4 w-4' />
-        Files
-      </Link>
+
+      {currentSpace === 'storage' ? (
+        <>
+          <Link
+            href={`/user/${workspaceKey}?space=storage#upload`}
+            className='inline-flex h-9 items-center justify-center gap-2 rounded-full border border-input bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground'
+          >
+            <UploadCloud className='h-4 w-4' />
+            Upload
+          </Link>
+          <Link
+            href={`/user/${workspaceKey}?space=storage#files`}
+            className='inline-flex h-9 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-3 text-sm font-medium text-white shadow-lg shadow-blue-500/30 transition-all'
+          >
+            <FileText className='h-4 w-4' />
+            Files
+          </Link>
+        </>
+      ) : (
+        <a 
+          href={`/user/${workspaceKey}?space=code#code-space`}
+          className='flex gap-2 justify-center items-center rounded-full bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-lg shadow-emerald-500/30 hover:from-emerald-700 hover:to-teal-600 px-3 text-sm font-medium'
+        >
+          <FilePlus2 className='h-4 w-4' />
+          New note
+        </a>
+      )}
+
       <Link
         href={`/user/${workspaceKey}/analysis`}
         className='inline-flex h-9 items-center justify-center gap-2 rounded-full border border-input bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground'

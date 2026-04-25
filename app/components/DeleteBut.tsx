@@ -119,7 +119,9 @@ const DeleteBut = ({
 
       <AlertDialog open={isOpen} onOpenChange={handleOpenChange}>
         <AlertDialogPortal>
-          <AlertDialogContent className='max-w-md gap-0 border-border/70 bg-card p-0 shadow-[0_18px_50px_rgba(15,23,42,0.18)]'>
+          <AlertDialogContent
+            className='max-w-md gap-0 border-border/70 bg-card p-0 shadow-[0_18px_50px_rgba(15,23,42,0.18)]'
+          >
             <div className='h-1.5 bg-gradient-to-r from-destructive via-red-600 to-destructive' />
             <AlertDialogHeader className='px-6 pb-3 pt-6 text-left'>
               <div className='flex items-start gap-3'>

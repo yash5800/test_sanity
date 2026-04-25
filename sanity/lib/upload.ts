@@ -112,6 +112,7 @@ export const uploadToSanity = async (
       key: uploadKey,
       filename: uploadFile.originalFilename || file.name,
       size: file.size,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       file: {
         _type: 'file',
         asset: {

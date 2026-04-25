@@ -22,7 +22,7 @@ const page = () => {
         <div className='space-y-6 sm:space-y-8'>
           <div className='animate-enter space-y-4 sm:space-y-6' style={{ animationDelay: '70ms' }}>
             <h1 className='text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight'>
-              Upload, search, and manage files in a <span className='bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent'>private workspace</span>.
+              Upload, search, and manage files in a <span className='bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent'>private storage space</span>.
             </h1>
             <p className='max-w-xl text-sm sm:text-base md:text-lg text-muted-foreground leading-relaxed'>
               Clean surfaces, quick access, and a simple workflow for private file management. No complications, no distractions.
@@ -47,7 +47,7 @@ const page = () => {
               </div>
               <div className='space-y-1'>
                 <p className='font-semibold text-foreground'>Secure & Private</p>
-                <p className='text-sm text-muted-foreground'>Access is key-based. If someone gets your key, they can access your workspace.</p>
+                <p className='text-sm text-muted-foreground'>Access is key-based. If someone gets your key, they can access your storage space.</p>
               </div>
             </CardContent>
           </Card>

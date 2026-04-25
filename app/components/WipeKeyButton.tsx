@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { AlertTriangle, Sparkles, Trash2 } from "lucide-react";
 
 import { Button } from "@/app/components/ui/button";
@@ -14,17 +14,13 @@ import {
   AlertDialogSecondaryAction,
   AlertDialogTitle,
 } from "@/app/components/ui/alert-dialog";
-import { Input } from "@/app/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 
 const WipeKeyButton = ({ uploadKey, fileCount }: { uploadKey: string; fileCount: number }) => {
   const [isOpen, setOpen] = useState(false);
   const [isDeleting, setDeleting] = useState(false);
-  const [confirmationText, setConfirmationText] = useState("");
   const { toast } = useToast();
-
-  const expectedText = useMemo(() => `wipe ${uploadKey}`, [uploadKey]);
-  const canConfirm = confirmationText === expectedText && fileCount > 0 && !isDeleting;
+  const canConfirm = fileCount > 0 && !isDeleting;
 
   const wipeAllFiles = async () => {
     setDeleting(true);
@@ -59,11 +55,10 @@ const WipeKeyButton = ({ uploadKey, fileCount }: { uploadKey: string; fileCount:
       }
 
       toast({
-        title: "Workspace wiped",
+        title: "Storage space wiped",
         description: `${result.deletedFiles} file${result.deletedFiles === 1 ? "" : "s"} removed from ${uploadKey}.`,
         variant: "success",
       });
-      setConfirmationText("");
       setOpen(false);
     } catch (error) {
       toast({
@@ -104,29 +99,15 @@ const WipeKeyButton = ({ uploadKey, fileCount }: { uploadKey: string; fileCount:
                 </AlertDialogDescription>
                 <p className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Sparkles className="h-3.5 w-3.5 text-chart-4" />
-                  Material warning surface with explicit confirmation.
+                  Confirm before wiping. You can close this modal by clicking outside.
                 </p>
               </div>
             </div>
           </AlertDialogHeader>
 
           <div className="mx-6 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-muted-foreground">
-            <p className="font-medium text-foreground">Type <span className="font-mono">{expectedText}</span> to confirm.</p>
-            <p className="mt-1">This prevents accidental wipes.</p>
-          </div>
-
-          <div className="space-y-2 px-6 pb-2 pt-5">
-            <label htmlFor="wipe-confirmation" className="text-sm font-medium text-foreground">
-              Confirmation text
-            </label>
-            <Input
-              id="wipe-confirmation"
-              value={confirmationText}
-              onChange={(event) => setConfirmationText(event.target.value)}
-              placeholder={expectedText}
-              className="font-mono"
-              autoComplete="off"
-            />
+            <p className="font-medium text-foreground">Files to remove: {fileCount}</p>
+            <p className="mt-1">Press wipe only if you are sure.</p>
           </div>
 
           <AlertDialogFooter className="gap-2 px-6 pb-6 pt-1 sm:justify-end">

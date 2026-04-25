@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { BarChart3, CalendarRange, ChevronLeft, Database, TrendingUp } from 'lucide-react';
+import { BarChart3, CalendarRange, ChevronLeft, Clock3, Database, NotebookPen, TrendingUp } from 'lucide-react';
 import { Metadata } from 'next';
 
 import { Badge } from '@/app/components/ui/badge';
@@ -11,7 +11,7 @@ import { QUERY } from '@/sanity/lib/query';
 
 export const metadata: Metadata = {
   title: 'Analysis',
-  description: 'Daily usage analysis for workspace uploads.',
+  description: 'Daily usage analysis for storage space uploads.',
 };
 
 interface AnalysisFile {
@@ -82,10 +82,10 @@ const AnalysisPage = async ({
           <span className='font-medium text-foreground'>Analysis</span>
         </div>
         <div className='space-y-2'>
-          <Badge className='w-fit rounded-full bg-secondary text-secondary-foreground'>Workspace analytics</Badge>
+          <Badge className='w-fit rounded-full bg-secondary text-secondary-foreground'>Storage space analytics</Badge>
           <h1 className='text-3xl font-semibold tracking-tight sm:text-4xl'>Daily usage insights</h1>
           <p className='max-w-2xl text-sm text-muted-foreground sm:text-base'>
-            Modern chart view for workspace <span className='font-medium text-foreground'>{key}</span> with upload activity and storage growth over the last 14 days.
+            Modern chart view for storage space <span className='font-medium text-foreground'>{key}</span> with upload activity and storage growth over the last 14 days.
           </p>
         </div>
       </section>
@@ -106,7 +106,7 @@ const AnalysisPage = async ({
 
         <Card className='hover-lift animate-enter border-border/70 bg-card/90 shadow-sm shadow-black/10' style={{ animationDelay: '50ms' }}>
           <CardHeader className='pb-2'>
-            <CardDescription>Workspace bytes</CardDescription>
+            <CardDescription>Storage space bytes</CardDescription>
             <CardTitle className='text-3xl'>{formatBytes(totalBytes)}</CardTitle>
           </CardHeader>
           <CardContent className='text-sm text-muted-foreground'>
@@ -139,6 +139,34 @@ const AnalysisPage = async ({
             <div className='inline-flex items-center gap-2'>
               <TrendingUp className='h-4 w-4 text-chart-2' />
               Across active upload days
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className='grid gap-4 sm:grid-cols-2'>
+        <Card className='hover-lift animate-enter border-border/70 bg-card/90 shadow-sm shadow-black/10'>
+          <CardHeader className='pb-2'>
+            <CardDescription>File retention</CardDescription>
+            <CardTitle className='text-3xl'>24 hrs</CardTitle>
+          </CardHeader>
+          <CardContent className='text-sm text-muted-foreground'>
+            <div className='inline-flex items-center gap-2'>
+              <Clock3 className='h-4 w-4 text-chart-2' />
+              Uploaded files are removed daily.
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className='hover-lift animate-enter border-border/70 bg-card/90 shadow-sm shadow-black/10' style={{ animationDelay: '50ms' }}>
+          <CardHeader className='pb-2'>
+            <CardDescription>Note retention</CardDescription>
+            <CardTitle className='text-3xl'>10 days</CardTitle>
+          </CardHeader>
+          <CardContent className='text-sm text-muted-foreground'>
+            <div className='inline-flex items-center gap-2'>
+              <NotebookPen className='h-4 w-4 text-emerald-500' />
+              Code notes are removed automatically.
             </div>
           </CardContent>
         </Card>

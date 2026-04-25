@@ -13,6 +13,7 @@ const CursorContext = createContext<CursorContextType | undefined>(undefined)
 
 export function CursorProvider({ children }: { children: ReactNode }) {
   const [cursorType, setCursorType] = useState<CursorType>('gojo')
+  const [isCoarsePointer, setIsCoarsePointer] = useState(false)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -20,15 +21,25 @@ export function CursorProvider({ children }: { children: ReactNode }) {
     if (saved) {
       setCursorType(saved)
     }
+
+    const media = window.matchMedia('(pointer: coarse)')
+    const syncPointerType = () => setIsCoarsePointer(media.matches)
+    syncPointerType()
+    media.addEventListener('change', syncPointerType)
+
     setMounted(true)
+
+    return () => {
+      media.removeEventListener('change', syncPointerType)
+    }
   }, [])
 
   useEffect(() => {
     if (mounted) {
       localStorage.setItem('cursor-type', cursorType)
-      document.documentElement.setAttribute('data-cursor-type', cursorType)
+      document.documentElement.setAttribute('data-cursor-type', isCoarsePointer ? 'system' : cursorType)
     }
-  }, [cursorType, mounted])
+  }, [cursorType, isCoarsePointer, mounted])
 
   return (
     <CursorContext.Provider value={{ cursorType, setCursorType }}>

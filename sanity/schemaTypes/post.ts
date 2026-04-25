@@ -32,6 +32,12 @@ export const Post = defineType({
       description: "File size in bytes"
     }),
     defineField({
+      name: 'expiresAt',
+      type: 'datetime',
+      readOnly: true,
+      description: 'Automatically removed after 24 hours.',
+    }),
+    defineField({
       name: 'copiedFromId',
       type: 'string',
       readOnly: true,

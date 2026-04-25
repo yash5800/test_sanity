@@ -100,6 +100,7 @@ export const copySanityFileToKey = async (fileId: string, key: string, filename?
     key: trimmedKey,
     filename: filename?.trim() || file.filename || 'Copied file',
     copiedFromId: fileId,
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     file: {
       _type: 'file',
       asset: {
@@ -182,6 +183,37 @@ export const deleteSanityFileWithCleanup = async (fileId: string) => {
   return {
     deletedFileId: fileId,
     deletedAssetId: assetDeleted ? assetId : null,
+  };
+};
+
+export const deleteExpiredFilesByAge = async (olderThanIso: string) => {
+  const files = await client.fetch<FileDocument[]>(
+    `*[_type == "post" && _createdAt <= $olderThanIso]{_id, file{asset{_ref}}}`,
+    { olderThanIso },
+  );
+
+  if (!files.length) {
+    return {
+      deletedFiles: 0,
+      deletedAssets: 0,
+    };
+  }
+
+  const fileIds = files.map((file) => file._id);
+  const assetIds = Array.from(
+    new Set(files.map((file) => file.file?.asset?._ref).filter(Boolean)),
+  ) as string[];
+
+  await deleteShareLinksForFiles(fileIds);
+
+  const deleteDocsTransaction = fileIds.reduce((tx, id) => tx.delete(id), client.transaction());
+  await deleteDocsTransaction.commit();
+
+  const assetResults = await Promise.all(assetIds.map((assetId) => deleteAssetIfUnreferenced(assetId)));
+
+  return {
+    deletedFiles: fileIds.length,
+    deletedAssets: assetResults.filter(Boolean).length,
   };
 };
 

@@ -9,6 +9,7 @@ import { Input } from '@/app/components/ui/input';
 import { Badge } from '@/app/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/app/components/ui/card';
 import { formatBytes } from '@/lib/format-storage';
+import { formatRemovalBadge, getBadgeToneClass } from '@/lib/retention';
 import { FILE_ICON_FALLBACK_ICON, getFileExtension, getFileIconCategory, getFileIconSrc } from './file-icon-map';
 import FileActions from './FileActions';
 
@@ -18,6 +19,7 @@ export interface UserFileItem {
   copiedFromId?: string;
   tags?: string[];
   note?: string;
+  expiresAt?: string;
   fileUrl: string;
   size?: number;
   _createdAt: string;
@@ -203,6 +205,16 @@ const UserFilesList = ({ files, currentKey }: { files: UserFileItem[]; currentKe
                       {item.copiedFromId ? 'Clone' : 'Stored'}
                     </Badge>
                   </div>
+                </div>
+                <div className='flex flex-wrap items-center gap-2'>
+                  {(() => {
+                    const badge = formatRemovalBadge(item.expiresAt);
+                    return (
+                      <Badge className={`rounded-full border px-2.5 py-1 text-[10px] ${getBadgeToneClass(badge.tone)}`}>
+                        {badge.label}
+                      </Badge>
+                    );
+                  })()}
                 </div>
                 <div
                   className={`items-center gap-2 text-sm text-muted-foreground sm:flex ${
