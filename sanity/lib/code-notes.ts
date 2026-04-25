@@ -69,10 +69,10 @@ export const wipeCodeNotesByKey = async (key: string) => {
 };
 
 export const deleteExpiredCodeNotes = async () => {
-  const cutoff = new Date(Date.now() - NOTE_RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  const now = new Date().toISOString();
   const noteIds = await client.fetch<string[]>(
-    `*[_type == "codeNote" && _createdAt <= $cutoff]._id`,
-    { cutoff },
+    `*[_type == "codeNote" && expiresAt <= $now]._id`,
+    { now },
   );
 
   if (!noteIds.length) {

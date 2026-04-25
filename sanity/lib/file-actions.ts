@@ -2,8 +2,6 @@ import { client } from './client';
 
 type FileDocument = {
   _id: string;
-  key?: string;
-  filename?: string;
   file?: {
     asset?: {
       _ref?: string;
@@ -68,46 +66,6 @@ export const renameSanityFile = async (fileId: string, filename: string) => {
   const sanitized = sanitizeString(trimmedName, MAX_FILENAME_LENGTH);
 
   return client.patch(fileId).set({ filename: sanitized }).commit();
-};
-
-export const copySanityFileToKey = async (fileId: string, key: string, filename?: string) => {
-  const trimmedKey = key.trim();
-
-  if (!trimmedKey) {
-    throw new Error('Target key cannot be empty');
-  }
-
-  const file = await client.getDocument(fileId) as FileDocument | null;
-
-  if (!file) {
-    throw new Error('File could not be found');
-  }
-
-  const currentKey = file.key?.trim();
-
-  if (currentKey && currentKey === trimmedKey) {
-    throw new Error('Target key must be different from the current key');
-  }
-
-  const assetRef = file?.file?.asset?._ref;
-
-  if (!assetRef) {
-    throw new Error('File asset could not be found');
-  }
-
-  return client.create({
-    _type: 'post',
-    key: trimmedKey,
-    filename: filename?.trim() || file.filename || 'Copied file',
-    copiedFromId: fileId,
-    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    file: {
-      _type: 'file',
-      asset: {
-        _ref: assetRef,
-      },
-    },
-  });
 };
 
 export const updateSanityFileMetadata = async (fileId: string, tags: string[], note: string) => {
@@ -186,10 +144,11 @@ export const deleteSanityFileWithCleanup = async (fileId: string) => {
   };
 };
 
-export const deleteExpiredFilesByAge = async (olderThanIso: string) => {
+export const deleteExpiredFilesByAge = async () => {
+  const now = new Date().toISOString();
   const files = await client.fetch<FileDocument[]>(
-    `*[_type == "post" && _createdAt <= $olderThanIso]{_id, file{asset{_ref}}}`,
-    { olderThanIso },
+    `*[_type == "post" && expiresAt <= $now]{_id, file{asset{_ref}}}`,
+    { now },
   );
 
   if (!files.length) {

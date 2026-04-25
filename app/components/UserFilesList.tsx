@@ -16,7 +16,6 @@ import FileActions from './FileActions';
 export interface UserFileItem {
   key: string;
   filename: string;
-  copiedFromId?: string;
   tags?: string[];
   note?: string;
   expiresAt?: string;
@@ -199,10 +198,8 @@ const UserFilesList = ({ files, currentKey }: { files: UserFileItem[]; currentKe
                     >
                       <Info className={`h-4 w-4 ${expandedMobileDetailsId === item._id ? 'text-primary' : 'text-muted-foreground'}`} />
                     </Button>
-                    <Badge
-                      className={`rounded-full ${item.copiedFromId ? 'bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30' : 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30'}`}
-                    >
-                      {item.copiedFromId ? 'Clone' : 'Stored'}
+                    <Badge className='rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30'>
+                      Stored
                     </Badge>
                   </div>
                 </div>
@@ -263,10 +260,16 @@ const UserFilesList = ({ files, currentKey }: { files: UserFileItem[]; currentKe
                 ) : null}
               </CardHeader>
               <CardContent className='mt-auto px-5 pb-4'>
-                  <FileActions
-                    file={{ _id: item._id, filename: item.filename, fileUrl: item.fileUrl, tags: item.tags, note: item.note }}
-                    currentKey={currentKey}
-                  />
+                    <FileActions
+                      file={{
+                        _id: item._id,
+                        filename: item.filename,
+                        fileUrl: item.fileUrl,
+                        tags: item.tags,
+                        note: item.note,
+                      }}
+                      currentKey={currentKey}
+                    />
               </CardContent>
             </Card>
           ))

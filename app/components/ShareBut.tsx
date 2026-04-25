@@ -17,16 +17,15 @@ import { useToast } from '@/hooks/use-toast';
 
 const durationOptions = [
   { label: '1 hour', value: 1 },
-  { label: '24 hours', value: 24 },
-  { label: '3 days', value: 72 },
-  { label: '7 days', value: 168 },
+  { label: '2 hours', value: 2 },
+  { label: '4 hours', value: 4 },
 ] as const;
 
 const ShareBut = ({ file, workspaceKey }: { file: { _id: string; filename: string; fileUrl: string }; workspaceKey: string }) => {
   const { toast } = useToast();
   const [isOpen, setOpen] = useState(false);
   const [isSharing, setSharing] = useState(false);
-  const [durationHours, setDurationHours] = useState<number>(24);
+  const [durationHours, setDurationHours] = useState<number>(1);
   const [passcode, setPasscode] = useState('');
 
   const trimmedPasscode = useMemo(() => passcode.trim(), [passcode]);
@@ -74,7 +73,7 @@ const ShareBut = ({ file, workspaceKey }: { file: { _id: string; filename: strin
 
       setOpen(false);
       setPasscode('');
-      setDurationHours(24);
+      setDurationHours(1);
     } catch (error) {
       toast({
         title: 'Error',
@@ -100,7 +99,7 @@ const ShareBut = ({ file, workspaceKey }: { file: { _id: string; filename: strin
           setOpen(nextOpen);
           if (!nextOpen) {
             setPasscode('');
-            setDurationHours(24);
+            setDurationHours(1);
           }
         }}
       >
