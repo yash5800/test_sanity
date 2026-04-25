@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { deleteExpiredShareLinks } from '@/sanity/lib/share-links';
+import { deleteExpiredFilesByAge } from '@/sanity/lib/file-actions';
+import { deleteExpiredCodeNotes } from '@/sanity/lib/code-notes';
 
 export const runtime = 'nodejs';
 
@@ -29,11 +31,19 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const deletedCount = await deleteExpiredShareLinks();
+    const fileExpiryCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+    const [deletedShareLinks, expiredFiles, expiredNotes] = await Promise.all([
+      deleteExpiredShareLinks(),
+      deleteExpiredFilesByAge(fileExpiryCutoff),
+      deleteExpiredCodeNotes(),
+    ]);
 
     return NextResponse.json({
       ok: true,
-      deletedCount,
+      deletedShareLinks,
+      expiredFiles,
+      expiredNotes,
       ranAt: new Date().toISOString(),
     });
   } catch (error) {

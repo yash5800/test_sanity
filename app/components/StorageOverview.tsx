@@ -22,14 +22,14 @@ const StorageOverview = async ({ uploadKey }: { uploadKey: string }) => {
       <div className="h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
       <CardHeader className="space-y-2 pb-4">
         <div className="flex items-center justify-between gap-3">
-          <Badge className="rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 font-semibold">Workspace</Badge>
+          <Badge className="rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 font-semibold">Storage Space</Badge>
           <span className="text-sm text-muted-foreground">{files.length} file{files.length === 1 ? '' : 's'}</span>
         </div>
         <CardTitle className="flex items-center gap-2 text-2xl">
           <Database className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           Storage overview
         </CardTitle>
-        <CardDescription>A simple summary with direct access to upload and file browsing.</CardDescription>
+        <CardDescription>A simple summary with direct access to upload and file browsing. Files auto-remove after 24 hrs.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="grid gap-3 sm:grid-cols-2">
@@ -43,12 +43,12 @@ const StorageOverview = async ({ uploadKey }: { uploadKey: string }) => {
           </div>
           <div className="rounded-[1.5rem] border border-border/70 bg-gradient-to-br from-purple-500/10 via-background to-background p-5 shadow-sm">
             <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
-              <p>Workspace storage used</p>
+              <p>Storage space used</p>
               <HardDriveUpload className="h-4 w-4 text-purple-600 dark:text-purple-400" />
             </div>
             <p className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">{formatBytes(workspaceBytes)}</p>
             <p className="mt-2 text-sm text-muted-foreground">
-              {files.length === 0 ? 'No files uploaded yet.' : 'Everything in this workspace is shown below.'}
+              {files.length === 0 ? 'No files uploaded yet.' : 'Everything in this storage space is shown below.'}
             </p>
           </div>
         </div>

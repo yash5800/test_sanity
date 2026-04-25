@@ -27,8 +27,12 @@ html, body {
   cursor: var(--cursor-default);
 }
 
-a, button, [role="button"], input, select, textarea, label, [tabindex]:not([tabindex="-1"]) {
+a, button, [role="button"], input[type="button"], input[type="submit"], input[type="checkbox"], input[type="radio"], select, label, [tabindex]:not([tabindex="-1"]) {
   cursor: var(--cursor-pointer) !important;
+}
+
+input:not([type="button"]):not([type="submit"]):not([type="checkbox"]):not([type="radio"]), textarea {
+  cursor: text !important;
 }
 
 @media (pointer: coarse) {

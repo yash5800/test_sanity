@@ -2,11 +2,25 @@
 import { useToast } from '@/hooks/use-toast';
 import { MAX_UPLOAD_SIZE_BYTES, uploadManyToSanity } from '@/sanity/lib/upload'
 import { useRouter } from 'next/navigation';
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { FileUp, ImagePlus, Loader2, Sparkles, UploadCloud } from 'lucide-react'
 
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
+
+const UPLOAD_STATE_KEY = 'sanityhub:upload-state';
+
+type PersistedUploadState = {
+  uploadKey: string;
+  isUploading: boolean;
+  selectedCount: number;
+  uploadProgress: number;
+  activeFileName: string | null;
+  activeFileSize: number;
+  loadedBytes: number;
+  totalBytes: number;
+  updatedAt: number;
+};
 
 const formatBytes = (bytes: number): string => {
   if (bytes === 0) return '0 B';
@@ -25,9 +39,66 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
   const [loadedBytes, setLoadedBytes] = useState<number>(0);
   const [totalBytes, setTotalBytes] = useState<number>(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [isTabHidden, setTabHidden] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const router = useRouter();
   const {toast} = useToast();
+
+  const persistUploadState = (state: PersistedUploadState) => {
+    try {
+      sessionStorage.setItem(UPLOAD_STATE_KEY, JSON.stringify(state));
+    } catch {
+      // no-op if storage is unavailable
+    }
+  };
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(UPLOAD_STATE_KEY);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as PersistedUploadState;
+      if (parsed.uploadKey !== uploadKey) return;
+
+      setUploading(parsed.isUploading);
+      setSelectedCount(parsed.selectedCount);
+      setUploadProgress(parsed.uploadProgress);
+      setActiveFileName(parsed.activeFileName);
+      setActiveFileSize(parsed.activeFileSize);
+      setLoadedBytes(parsed.loadedBytes);
+      setTotalBytes(parsed.totalBytes);
+    } catch {
+      // ignore invalid persisted upload state
+    }
+  }, [uploadKey]);
+
+  useEffect(() => {
+    const onBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!isUploading) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
+
+    window.addEventListener('beforeunload', onBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', onBeforeUnload);
+    };
+  }, [isUploading]);
+
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      const hidden = document.visibilityState === 'hidden';
+      setTabHidden(hidden);
+    };
+
+    onVisibilityChange();
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, []);
 
   const handleOnClick=()=>{
      inputRef.current?.click();
@@ -95,6 +166,20 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
           setUploadProgress(0);
           setActiveFileName(files[0]?.name ?? null);
           setActiveFileSize(files[0]?.size ?? 0);
+          setLoadedBytes(0);
+          setTotalBytes(files.reduce((sum, file) => sum + file.size, 0));
+
+          persistUploadState({
+            uploadKey,
+            isUploading: true,
+            selectedCount: files.length,
+            uploadProgress: 0,
+            activeFileName: files[0]?.name ?? null,
+            activeFileSize: files[0]?.size ?? 0,
+            loadedBytes: 0,
+            totalBytes: files.reduce((sum, file) => sum + file.size, 0),
+            updatedAt: Date.now(),
+          });
 
           await uploadManyToSanity(uploadKey, files, ({ percent, file, loadedBytes: loaded, totalBytes: total }) => {
             setUploadProgress(percent);
@@ -102,11 +187,21 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
             setActiveFileSize(file.size);
             setLoadedBytes(loaded);
             setTotalBytes(total);
+
+            persistUploadState({
+              uploadKey,
+              isUploading: true,
+              selectedCount: files.length,
+              uploadProgress: percent,
+              activeFileName: file.name,
+              activeFileSize: file.size,
+              loadedBytes: loaded,
+              totalBytes: total,
+              updatedAt: Date.now(),
+            });
           });
           
           setUploadProgress(100);
-          setLoadedBytes(0);
-          setTotalBytes(0);
           
           await new Promise(resolve => setTimeout(resolve, 300));
           
@@ -118,6 +213,18 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
           router.refresh();
           setSelectedCount(0);
           setUploading(false);
+
+          persistUploadState({
+            uploadKey,
+            isUploading: false,
+            selectedCount: 0,
+            uploadProgress: 100,
+            activeFileName: null,
+            activeFileSize: 0,
+            loadedBytes: 0,
+            totalBytes: 0,
+            updatedAt: Date.now(),
+          });
         }
         catch (e: unknown) {
           console.error("File upload error:", e); 
@@ -135,10 +242,23 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
             })
           }
           setUploading(false);
+
+          persistUploadState({
+            uploadKey,
+            isUploading: false,
+            selectedCount: 0,
+            uploadProgress: 0,
+            activeFileName: null,
+            activeFileSize: 0,
+            loadedBytes: 0,
+            totalBytes: 0,
+            updatedAt: Date.now(),
+          });
         } finally {
           setActiveFileName(null);
           setLoadedBytes(0);
           setTotalBytes(0);
+          setUploadProgress(0);
         }
         
   }
@@ -218,6 +338,14 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
                </span>
              )}
            </div>
+           {isTabHidden ? (
+             <p className='text-xs text-amber-400'>
+               Upload is still running in background tab. Keep this tab open until completion.
+             </p>
+           ) : null}
+           <p className='text-xs text-muted-foreground'>
+             Avoid hard refresh during upload. Progress UI is restored on route/tab changes.
+           </p>
          </div>
        ) : null}
        <div className='flex items-center gap-3 rounded-[1.25rem] border border-border/70 bg-gradient-to-r from-blue-500/8 via-background to-purple-500/8 p-3 text-sm text-muted-foreground'>

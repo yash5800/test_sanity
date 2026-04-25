@@ -18,6 +18,12 @@ const AlertDialogOverlay = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Overlay>
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Overlay
+    onClick={(event) => {
+      if (event.target !== event.currentTarget) return;
+      const portalRoot = (event.currentTarget as HTMLElement).parentElement;
+      const closeButton = portalRoot?.querySelector('[aria-label="Close dialog"]') as HTMLButtonElement | null;
+      closeButton?.click();
+    }}
     className={cn(
       "fixed inset-0 z-50 bg-black/70 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className,

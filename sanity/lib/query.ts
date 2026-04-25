@@ -8,6 +8,7 @@ export const QUERY = defineQuery(`*[_type=="post" && key == $key]|order(_created
   copiedFromId,
   tags,
   note,
+  expiresAt,
   "fileUrl": file.asset->url,
   "size": coalesce(size, file.asset->size),
   _createdAt
