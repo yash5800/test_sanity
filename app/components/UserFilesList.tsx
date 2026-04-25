@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useMemo, useState } from 'react';
-import { CalendarClock, Info, Search, SlidersHorizontal } from 'lucide-react';
+import { CalendarClock, Info, Search, SlidersHorizontal, Sparkles } from 'lucide-react';
 
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
@@ -80,7 +80,12 @@ const UserFilesList = ({ files, currentKey }: { files: UserFileItem[]; currentKe
   return (
     <div className='space-y-4'>
       <div className='space-y-3'>
-        <div className='relative w-full sm:max-w-md'>
+        <div className='w-full sm:max-w-md rounded-2xl border border-primary/40 bg-primary/5 p-2 shadow-[0_0_0_1px_hsl(var(--primary)/0.1)] soft-pulse'>
+          <p className='mb-2 inline-flex items-center gap-2 rounded-full border border-primary/40 bg-background/80 px-2.5 py-1 text-[11px] font-semibold text-primary'>
+            <Sparkles className='h-3.5 w-3.5' />
+            Start here: search files
+          </p>
+          <div className='relative w-full'>
           <Search className='pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
           <Input
             value={searchTerm}
@@ -88,6 +93,7 @@ const UserFilesList = ({ files, currentKey }: { files: UserFileItem[]; currentKe
             placeholder='Search by filename'
             className='h-11 w-full rounded-2xl pl-9'
           />
+          </div>
         </div>
 
         <div className='flex flex-col gap-3 rounded-[1.4rem] border border-border/70 bg-background/70 p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between'>

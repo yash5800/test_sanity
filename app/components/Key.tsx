@@ -53,6 +53,10 @@ const Key = () => {
       <CardContent>
         <form className="space-y-4 sm:space-y-5" onSubmit={handleInsertKey}>
           <div className="space-y-2">
+            <p className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary soft-pulse">
+              <Sparkles className="h-3.5 w-3.5" />
+              Start here: enter access key
+            </p>
             <label htmlFor="key" className="block text-sm font-semibold text-foreground/90">
               Access Key
             </label>
@@ -68,7 +72,7 @@ const Key = () => {
               required
               aria-invalid={Boolean(error)}
               aria-describedby={error ? "key-error" : undefined}
-              className="h-11 sm:h-12 rounded-xl bg-gradient-to-br from-background/60 to-background/40 text-sm sm:text-base border-border/50 focus:border-primary/50 transition-all"
+              className="h-11 sm:h-12 rounded-xl bg-gradient-to-br from-background/60 to-background/40 text-sm sm:text-base border-primary/50 ring-2 ring-primary/25 focus:border-primary/70 focus:ring-primary/40 shadow-[0_0_0_1px_hsl(var(--primary)/0.2)] transition-all"
             />
           </div>
 

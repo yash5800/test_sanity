@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Copy, FilePlus2, NotebookPen, Search, Trash2 } from "lucide-react";
+import { AlertTriangle, Copy, FilePlus2, NotebookPen, Search, Sparkles, Trash2 } from "lucide-react";
 
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/components/ui/card";
@@ -12,6 +12,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
+  AlertDialogIcon,
   AlertDialogSecondaryAction,
   AlertDialogTitle,
 } from "@/app/components/ui/alert-dialog";
@@ -42,6 +43,9 @@ const CodeSpacePanel = ({ workspaceKey }: CodeSpacePanelProps) => {
   const [mounted, setMounted] = useState(false);
   const [isInitialLoading, setInitialLoading] = useState(true);
   const [isSaving, setSaving] = useState(false);
+  const [isDeletingNote, setDeletingNote] = useState(false);
+  const [isWipingNotes, setWipingNotes] = useState(false);
+  const [isDeleteOpen, setDeleteOpen] = useState(false);
   const [isWipeOpen, setWipeOpen] = useState(false);
 
   const loadNotes = useCallback(async () => {
@@ -202,6 +206,7 @@ const CodeSpacePanel = ({ workspaceKey }: CodeSpacePanelProps) => {
   const deleteActive = async () => {
     if (!activeId) return;
 
+    setDeletingNote(true);
     try {
       const response = await fetch(`/api/code-notes/${activeId}`, { method: 'DELETE' });
       const data = await response.json().catch(() => null);
@@ -212,6 +217,7 @@ const CodeSpacePanel = ({ workspaceKey }: CodeSpacePanelProps) => {
       const nextNotes = notes.filter((note) => note._id !== activeId);
       setNotes(nextNotes);
       setActiveId(nextNotes[0]?._id ?? null);
+      setDeleteOpen(false);
 
       toast({
         title: 'Note removed',
@@ -224,10 +230,13 @@ const CodeSpacePanel = ({ workspaceKey }: CodeSpacePanelProps) => {
         description: error instanceof Error ? error.message : 'Unable to delete note',
         variant: 'destructive',
       });
+    } finally {
+      setDeletingNote(false);
     }
   };
 
   const wipeAllNotes = async () => {
+    setWipingNotes(true);
     try {
       const response = await fetch(`/api/code-notes?key=${encodeURIComponent(workspaceKey)}`, { method: 'DELETE' });
       const data = await response.json().catch(() => null);
@@ -250,6 +259,8 @@ const CodeSpacePanel = ({ workspaceKey }: CodeSpacePanelProps) => {
         description: error instanceof Error ? error.message : 'Unable to wipe notes',
         variant: 'destructive',
       });
+    } finally {
+      setWipingNotes(false);
     }
   };
 
@@ -308,14 +319,20 @@ const CodeSpacePanel = ({ workspaceKey }: CodeSpacePanelProps) => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto]">
-            <div className="relative w-full sm:max-w-md">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search notes"
-                className="h-11 w-full rounded-2xl pl-9"
-              />
+            <div className="w-full sm:max-w-md rounded-2xl border border-primary/40 bg-primary/5 p-2 shadow-[0_0_0_1px_hsl(var(--primary)/0.1)] soft-pulse">
+              <p className="mb-2 inline-flex items-center gap-2 rounded-full border border-primary/40 bg-background/80 px-2.5 py-1 text-[11px] font-semibold text-primary">
+                <Sparkles className="h-3.5 w-3.5" />
+                Start here: search notes
+              </p>
+              <div className="relative w-full">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Search notes"
+                  className="h-11 w-full rounded-2xl pl-9"
+                />
+              </div>
             </div>
             <Button type="button" variant="outline" className="h-11 rounded-2xl" onClick={copyActive} disabled={!activeNote}>
               <Copy className="h-4 w-4" />
@@ -400,7 +417,7 @@ const CodeSpacePanel = ({ workspaceKey }: CodeSpacePanelProps) => {
                       <Button type="button" variant="outline" className="rounded-full" onClick={() => void saveActive()} disabled={isSaving || !isDraftDirty}>
                         Save note
                       </Button>
-                      <Button type="button" variant="destructive" className="rounded-full" onClick={deleteActive}>
+                      <Button type="button" variant="destructive" className="rounded-full" onClick={() => setDeleteOpen(true)}>
                         <Trash2 className="h-4 w-4" />
                         Delete note
                       </Button>
@@ -421,25 +438,92 @@ const CodeSpacePanel = ({ workspaceKey }: CodeSpacePanelProps) => {
         </CardContent>
       </Card>
 
+      <AlertDialog
+        open={isDeleteOpen}
+        onOpenChange={(nextOpen) => {
+          if (isDeletingNote) return;
+          setDeleteOpen(nextOpen);
+        }}
+      >
+        <AlertDialogContent className="max-w-md gap-0 border-border/70 bg-card p-0 shadow-[0_18px_50px_rgba(15,23,42,0.18)]">
+          <div className="h-1.5 bg-gradient-to-r from-destructive via-red-600 to-destructive" />
+          <AlertDialogHeader className="px-6 pb-3 pt-6 text-left">
+            <div className="flex items-start gap-3">
+              <AlertDialogIcon>
+                <AlertTriangle className="h-5 w-5" />
+              </AlertDialogIcon>
+              <div className="min-w-0 flex-1 space-y-1">
+                <AlertDialogTitle>Delete this note?</AlertDialogTitle>
+                <AlertDialogDescription className="text-sm leading-relaxed">
+                  {(activeNote?.title?.trim() || 'Untitled note')} will be removed permanently from this Code Space.
+                </AlertDialogDescription>
+                <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Sparkles className="h-3.5 w-3.5 text-purple-500" />
+                  This action cannot be undone.
+                </p>
+              </div>
+            </div>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 px-6 pb-6 pt-1 sm:justify-end">
+            <AlertDialogSecondaryAction
+              type="button"
+              className="h-11 rounded-full border-border/70"
+              disabled={isDeletingNote}
+              onClick={() => setDeleteOpen(false)}
+            >
+              Cancel
+            </AlertDialogSecondaryAction>
+            <Button
+              type="button"
+              variant="destructive"
+              className="h-11 rounded-full"
+              onClick={() => void deleteActive()}
+              disabled={isDeletingNote || !activeId}
+            >
+              <Trash2 className="h-4 w-4" />
+              {isDeletingNote ? 'Deleting...' : 'Delete note'}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={isWipeOpen} onOpenChange={setWipeOpen}>
         <AlertDialogContent className="max-w-md gap-0 border-border/70 bg-card p-0 shadow-[0_18px_50px_rgba(15,23,42,0.18)]">
           <div className="h-1.5 bg-gradient-to-r from-destructive via-red-600 to-destructive" />
-          <AlertDialogHeader className="space-y-2 px-6 pb-3 pt-6 text-left">
-            <AlertDialogTitle>Wipe all notes?</AlertDialogTitle>
-            <AlertDialogDescription className="text-sm leading-relaxed">
-              This permanently deletes every note in this Code Space.
-            </AlertDialogDescription>
+          <AlertDialogHeader className="px-6 pb-3 pt-6 text-left">
+            <div className="flex items-start gap-3">
+              <AlertDialogIcon>
+                <AlertTriangle className="h-5 w-5" />
+              </AlertDialogIcon>
+              <div className="min-w-0 flex-1 space-y-1">
+                <AlertDialogTitle>Wipe all notes?</AlertDialogTitle>
+                <AlertDialogDescription className="text-sm leading-relaxed">
+                  This permanently deletes every note in this Code Space.
+                </AlertDialogDescription>
+                <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Sparkles className="h-3.5 w-3.5 text-purple-500" />
+                  This action cannot be undone.
+                </p>
+              </div>
+            </div>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 px-6 pb-6 pt-1 sm:justify-end">
-            <AlertDialogSecondaryAction className="h-11 rounded-full border-border/70">Cancel</AlertDialogSecondaryAction>
+            <AlertDialogSecondaryAction
+              type="button"
+              className="h-11 rounded-full border-border/70"
+              disabled={isWipingNotes}
+              onClick={() => setWipeOpen(false)}
+            >
+              Cancel
+            </AlertDialogSecondaryAction>
             <Button
               type="button"
               variant="destructive"
               className="h-11 rounded-full"
               onClick={() => void wipeAllNotes()}
-              disabled={notes.length === 0}
+              disabled={notes.length === 0 || isWipingNotes}
             >
-              Wipe notes
+              {isWipingNotes ? 'Wiping...' : 'Wipe notes'}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
