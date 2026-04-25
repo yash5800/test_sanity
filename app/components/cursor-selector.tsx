@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { Settings } from 'lucide-react'
 import { useCursor } from './cursor-provider'
@@ -39,9 +40,11 @@ export function CursorSelector() {
         aria-label="Cursor selector"
       >
         {currentOption?.preview ? (
-          <img 
+          <Image
             src={currentOption.preview} 
             alt={currentOption.label}
+            width={16}
+            height={16}
             className="h-4 w-4"
           />
         ) : (
@@ -81,9 +84,11 @@ export function CursorSelector() {
                       }`}
                     >
                       {option.preview ? (
-                        <img 
+                        <Image
                           src={option.preview} 
                           alt={option.label}
+                          width={20}
+                          height={20}
                           className="h-5 w-5 flex-shrink-0"
                         />
                       ) : (

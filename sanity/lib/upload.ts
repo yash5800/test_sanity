@@ -1,10 +1,21 @@
 import { client } from "./client"
 
-export const MAX_UPLOAD_SIZE_BYTES = 1024 * 1024 * 1024;
+export const MAX_UPLOAD_SIZE_BYTES = 200 * 1024 * 1024;
+export const MAX_UPLOAD_SIZE_LABEL = '200 MB';
 
 type UploadDocument = {
-  _id: string;
+  _id?: string;
+  id?: string;
   originalFilename?: string;
+  document?: {
+    _id?: string;
+    originalFilename?: string;
+  };
+};
+
+type ResolvedUploadDocument = {
+  assetId: string;
+  originalFilename: string;
 };
 
 type FileUploadProgress = {
@@ -29,10 +40,26 @@ const buildUploadUrl = (assetType: 'file' | 'image', file: File) => {
   return uploadUrl.toString();
 };
 
+const resolveUploadDocument = (uploadDocument: UploadDocument, fallbackFilename: string): ResolvedUploadDocument => {
+  const assetId = uploadDocument._id || uploadDocument.id || uploadDocument.document?._id;
+
+  if (!assetId) {
+    throw new Error('Upload completed but no asset id was returned by Sanity');
+  }
+
+  const originalFilename = uploadDocument.originalFilename || uploadDocument.document?.originalFilename || fallbackFilename;
+
+  return {
+    assetId,
+    originalFilename,
+  };
+};
+
 export const uploadToSanity = async (
   uploadKey: string,
   file: File,
   onProgress?: (progress: FileUploadProgress) => void,
+  signal?: AbortSignal,
 ) => {
   try {
     if (!uploadKey || !file) {
@@ -40,13 +67,32 @@ export const uploadToSanity = async (
     }
 
     if (file.size > MAX_UPLOAD_SIZE_BYTES) {
-      throw new Error('File must be 1 GB or smaller');
+      throw new Error(`File must be ${MAX_UPLOAD_SIZE_LABEL} or smaller`);
+    }
+
+    if (signal?.aborted) {
+      throw new DOMException('Upload canceled', 'AbortError');
     }
 
     const uploadFile = await new Promise<UploadDocument>((resolve, reject) => {
       const request = new XMLHttpRequest();
       const { token, withCredentials } = client.config();
       const uploadUrl = buildUploadUrl('file', file);
+
+      const abortUpload = () => {
+        request.abort();
+        reject(new DOMException('Upload canceled', 'AbortError'));
+      };
+
+      if (signal) {
+        signal.addEventListener('abort', abortUpload, { once: true });
+      }
+
+      const cleanup = () => {
+        if (signal) {
+          signal.removeEventListener('abort', abortUpload);
+        }
+      };
 
       request.open('POST', uploadUrl, true);
       request.responseType = 'text';
@@ -76,6 +122,8 @@ export const uploadToSanity = async (
       };
 
       request.onload = () => {
+        cleanup();
+
         if (request.status < 200 || request.status >= 300) {
           const errorMessage = request.responseText || 'File upload failed';
           reject(new Error(errorMessage));
@@ -101,22 +149,30 @@ export const uploadToSanity = async (
       };
 
       request.onerror = () => {
+        cleanup();
         reject(new Error('File upload failed'));
+      };
+
+      request.onabort = () => {
+        cleanup();
+        reject(new DOMException('Upload canceled', 'AbortError'));
       };
 
       request.send(file);
     });
 
+    const resolvedUpload = resolveUploadDocument(uploadFile, file.name);
+
     const document = await client.create({
       _type: 'post',
       key: uploadKey,
-      filename: uploadFile.originalFilename || file.name,
+      filename: resolvedUpload.originalFilename,
       size: file.size,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       file: {
         _type: 'file',
         asset: {
-          _ref: uploadFile._id,
+          _ref: resolvedUpload.assetId,
         },
       },
     });
@@ -131,15 +187,20 @@ export const uploadManyToSanity = async (
   uploadKey: string,
   files: File[],
   onProgress?: (progress: UploadProgress) => void,
+  signal?: AbortSignal,
 ) => {
   if (!uploadKey || files.length === 0) {
     return [];
   }
 
+  if (signal?.aborted) {
+    throw new DOMException('Upload canceled', 'AbortError');
+  }
+
   const oversizedFile = files.find((file) => file.size > MAX_UPLOAD_SIZE_BYTES);
 
   if (oversizedFile) {
-    throw new Error(`${oversizedFile.name} is larger than 1 GB`);
+    throw new Error(`${oversizedFile.name} is larger than ${MAX_UPLOAD_SIZE_LABEL}`);
   }
 
   const totalBytes = files.reduce((sum, file) => sum + file.size, 0) || files.length;
@@ -147,6 +208,10 @@ export const uploadManyToSanity = async (
   let completedBytes = 0;
 
   for (const [index, file] of files.entries()) {
+    if (signal?.aborted) {
+      throw new DOMException('Upload canceled', 'AbortError');
+    }
+
     const uploadedFile = await uploadToSanity(uploadKey, file, (progress) => {
       const currentLoadedBytes = completedBytes + progress.loadedBytes;
       const percent = totalBytes > 0 ? Math.min(100, Math.round((currentLoadedBytes / totalBytes) * 100)) : 100;
@@ -159,7 +224,7 @@ export const uploadManyToSanity = async (
         totalBytes,
         percent,
       });
-    });
+    }, signal);
 
     uploadedFiles.push(uploadedFile);
     completedBytes += file.size;

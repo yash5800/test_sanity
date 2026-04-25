@@ -1,26 +1,24 @@
 'use client'
 import { useToast } from '@/hooks/use-toast';
-import { MAX_UPLOAD_SIZE_BYTES, uploadManyToSanity } from '@/sanity/lib/upload'
+import { MAX_UPLOAD_SIZE_BYTES, MAX_UPLOAD_SIZE_LABEL, uploadToSanity } from '@/sanity/lib/upload'
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useRef, useState } from 'react'
-import { FileUp, ImagePlus, Loader2, Sparkles, UploadCloud } from 'lucide-react'
+import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { FileUp, ImagePlus, Loader2, Sparkles, UploadCloud, X } from 'lucide-react'
 
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
-
-const UPLOAD_STATE_KEY = 'sanityhub:upload-state';
-
-type PersistedUploadState = {
-  uploadKey: string;
-  isUploading: boolean;
-  selectedCount: number;
-  uploadProgress: number;
-  activeFileName: string | null;
-  activeFileSize: number;
-  loadedBytes: number;
-  totalBytes: number;
-  updatedAt: number;
-};
+import {
+  clearUploadSessionState,
+  clearUploadQueueState,
+  getUploadSessionState,
+  getUploadQueueState,
+  setUploadSessionState,
+  setUploadQueueState,
+  updateUploadQueueItem,
+  subscribeUploadQueue,
+  subscribeUploadSession,
+  type UploadQueueItem,
+} from './upload-session';
 
 const formatBytes = (bytes: number): string => {
   if (bytes === 0) return '0 B';
@@ -41,48 +39,127 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isTabHidden, setTabHidden] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const uploadAbortControllerRef = useRef<AbortController | null>(null);
+  const canceledFileIdsRef = useRef<Set<string>>(new Set());
+  const isMountedRef = useRef(true);
+  const handledCompletionAtRef = useRef<number | null>(null);
   const router = useRouter();
   const {toast} = useToast();
 
-  const persistUploadState = (state: PersistedUploadState) => {
+  const updateFileUpload = (id: string, updater: (item: UploadQueueItem) => UploadQueueItem) => {
+    updateUploadQueueItem(uploadKey, id, updater);
+  };
+
+  const setAllFileUploads = (items: UploadQueueItem[]) => {
+    setUploadQueueState(uploadKey, items);
+  };
+
+  const recordInterruptedUpload = () => {
     try {
-      sessionStorage.setItem(UPLOAD_STATE_KEY, JSON.stringify(state));
+      sessionStorage.setItem(
+        'sanityhub:upload-interrupted',
+        JSON.stringify({ uploadKey, updatedAt: Date.now() }),
+      );
     } catch {
-      // no-op if storage is unavailable
+      // ignore storage errors
     }
   };
 
+  const clearInterruptedUpload = () => {
+    try {
+      sessionStorage.removeItem('sanityhub:upload-interrupted');
+    } catch {
+      // ignore storage errors
+    }
+  };
+
+  const uploadSession = useSyncExternalStore(
+    subscribeUploadSession,
+    () => getUploadSessionState(uploadKey),
+    () => null,
+  );
+
+  const uploadQueue = useSyncExternalStore(
+    subscribeUploadQueue,
+    () => getUploadQueueState(uploadKey) ?? [],
+    () => getUploadQueueState(uploadKey) ?? [],
+  );
+
+  useEffect(() => {
+    if (!uploadSession) {
+      setUploading(false);
+      if (uploadQueue.length === 0) {
+        setSelectedCount(0);
+        setUploadProgress(0);
+        setActiveFileName(null);
+        setActiveFileSize(0);
+        setLoadedBytes(0);
+        setTotalBytes(0);
+      }
+      return;
+    }
+
+    if (uploadSession.phase === 'completed') {
+      if (handledCompletionAtRef.current !== uploadSession.updatedAt) {
+        handledCompletionAtRef.current = uploadSession.updatedAt;
+
+        toast({
+          title: 'success',
+          description: `${uploadSession.selectedCount} file${uploadSession.selectedCount > 1 ? 's' : ''} uploaded successfully`,
+          variant: 'success',
+        });
+        router.refresh();
+        clearUploadQueueState(uploadKey);
+      }
+
+      clearUploadSessionState(uploadKey);
+      return;
+    }
+
+    setUploading(uploadSession.isUploading);
+    setSelectedCount(uploadSession.selectedCount);
+    setUploadProgress(uploadSession.uploadProgress);
+    setActiveFileName(uploadSession.activeFileName);
+    setActiveFileSize(uploadSession.activeFileSize);
+    setLoadedBytes(uploadSession.loadedBytes);
+    setTotalBytes(uploadSession.totalBytes);
+  }, [uploadQueue.length, uploadKey, uploadSession, router, toast]);
+
   useEffect(() => {
     try {
-      const raw = sessionStorage.getItem(UPLOAD_STATE_KEY);
+      const raw = sessionStorage.getItem('sanityhub:upload-interrupted');
       if (!raw) return;
 
-      const parsed = JSON.parse(raw) as PersistedUploadState;
+      const parsed = JSON.parse(raw) as { uploadKey?: string; updatedAt?: number };
       if (parsed.uploadKey !== uploadKey) return;
 
-      setUploading(parsed.isUploading);
-      setSelectedCount(parsed.selectedCount);
-      setUploadProgress(parsed.uploadProgress);
-      setActiveFileName(parsed.activeFileName);
-      setActiveFileSize(parsed.activeFileSize);
-      setLoadedBytes(parsed.loadedBytes);
-      setTotalBytes(parsed.totalBytes);
+      clearInterruptedUpload();
+      toast({
+        title: 'Error',
+        description: 'Upload was interrupted by a reload or tab close. Please upload the file again.',
+        variant: 'destructive',
+      });
     } catch {
-      // ignore invalid persisted upload state
+      clearInterruptedUpload();
     }
-  }, [uploadKey]);
+  }, [toast, uploadKey]);
 
   useEffect(() => {
-    const onBeforeUnload = (event: BeforeUnloadEvent) => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const onPageHide = () => {
       if (!isUploading) return;
-      event.preventDefault();
-      event.returnValue = '';
+      recordInterruptedUpload();
     };
 
-    window.addEventListener('beforeunload', onBeforeUnload);
+    window.addEventListener('pagehide', onPageHide);
 
     return () => {
-      window.removeEventListener('beforeunload', onBeforeUnload);
+      window.removeEventListener('pagehide', onPageHide);
     };
   }, [isUploading]);
 
@@ -139,129 +216,264 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
     const droppedFiles = Array.from(e.dataTransfer.files ?? []);
     await handleSelectedFiles(droppedFiles);
   }
-  
-  const handleFileUpload= async(files:File[])=>{
-        if(!uploadKey||files.length===0){
-          toast({
-            title: 'Error',
-            description: 'Please choose at least one file',
-            variant: 'destructive',
-          })
-          return;
+
+  const handleFileUpload = async (files: File[]) => {
+    if (!uploadKey || files.length === 0) {
+      toast({
+        title: 'Error',
+        description: 'Please choose at least one file',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const oversizedFile = files.find((file) => file.size > MAX_UPLOAD_SIZE_BYTES);
+
+    if (oversizedFile) {
+      toast({
+        title: 'Error',
+        description: `${oversizedFile.name} is larger than ${MAX_UPLOAD_SIZE_LABEL}`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const initialFileUploads = files.map((file, index) => ({
+      id: `${file.name}-${file.size}-${index}-${Date.now()}`,
+      file,
+      status: 'queued' as const,
+      progress: 0,
+      loadedBytes: 0,
+      totalBytes: file.size,
+    }));
+
+    handledCompletionAtRef.current = null;
+    canceledFileIdsRef.current = new Set();
+    setAllFileUploads(initialFileUploads);
+    setSelectedCount(files.length);
+    setUploading(true);
+    setUploadProgress(0);
+    setActiveFileName(initialFileUploads[0]?.file.name ?? null);
+    setActiveFileSize(initialFileUploads[0]?.file.size ?? 0);
+    setLoadedBytes(0);
+    setTotalBytes(files.reduce((sum, file) => sum + file.size, 0));
+    clearInterruptedUpload();
+
+    setUploadSessionState({
+      uploadKey,
+      phase: 'uploading',
+      isUploading: true,
+      selectedCount: files.length,
+      uploadProgress: 0,
+      activeFileName: initialFileUploads[0]?.file.name ?? null,
+      activeFileSize: initialFileUploads[0]?.file.size ?? 0,
+      loadedBytes: 0,
+      totalBytes: files.reduce((sum, file) => sum + file.size, 0),
+      updatedAt: Date.now(),
+    });
+
+    let completedBytes = 0;
+
+    try {
+      for (const item of initialFileUploads) {
+        if (canceledFileIdsRef.current.has(item.id)) {
+          updateFileUpload(item.id, (current) => ({ ...current, status: 'canceled', progress: 0 }));
+          continue;
         }
 
-        const oversizedFile = files.find((file) => file.size > MAX_UPLOAD_SIZE_BYTES);
-
-        if (oversizedFile) {
-          toast({
-            title: 'Error',
-            description: `${oversizedFile.name} is larger than 1 GB`,
-            variant: 'destructive',
-          });
-          return;
+        if (!isMountedRef.current) {
+          break;
         }
 
-        try{
-          setUploading(true);
-          setUploadProgress(0);
-          setActiveFileName(files[0]?.name ?? null);
-          setActiveFileSize(files[0]?.size ?? 0);
-          setLoadedBytes(0);
-          setTotalBytes(files.reduce((sum, file) => sum + file.size, 0));
+        uploadAbortControllerRef.current = new AbortController();
 
-          persistUploadState({
+        updateFileUpload(item.id, (current) => ({ ...current, status: 'uploading' }));
+
+        setActiveFileName(item.file.name);
+        setActiveFileSize(item.file.size);
+
+        setUploadSessionState({
+          uploadKey,
+          phase: 'uploading',
+          isUploading: true,
+          selectedCount: files.length,
+          uploadProgress: completedBytes > 0 ? Math.min(100, Math.round((completedBytes / files.reduce((sum, file) => sum + file.size, 0)) * 100)) : 0,
+          activeFileName: item.file.name,
+          activeFileSize: item.file.size,
+          loadedBytes: completedBytes,
+          totalBytes: files.reduce((sum, file) => sum + file.size, 0),
+          updatedAt: Date.now(),
+        });
+
+        try {
+          const uploadedDocument = await uploadToSanity(
             uploadKey,
-            isUploading: true,
-            selectedCount: files.length,
-            uploadProgress: 0,
-            activeFileName: files[0]?.name ?? null,
-            activeFileSize: files[0]?.size ?? 0,
-            loadedBytes: 0,
-            totalBytes: files.reduce((sum, file) => sum + file.size, 0),
-            updatedAt: Date.now(),
-          });
+            item.file,
+            ({ loadedBytes, totalBytes, percent }) => {
+              const currentLoadedBytes = completedBytes + loadedBytes;
+              const currentTotalBytes = files.reduce((sum, file) => sum + file.size, 0);
+              const currentPercent = currentTotalBytes > 0 ? Math.min(100, Math.round((currentLoadedBytes / currentTotalBytes) * 100)) : percent;
 
-          await uploadManyToSanity(uploadKey, files, ({ percent, file, loadedBytes: loaded, totalBytes: total }) => {
-            setUploadProgress(percent);
-            setActiveFileName(file.name);
-            setActiveFileSize(file.size);
-            setLoadedBytes(loaded);
-            setTotalBytes(total);
+              updateFileUpload(item.id, (current) => ({
+                ...current,
+                status: 'uploading',
+                progress: percent,
+                loadedBytes,
+                totalBytes,
+              }));
 
-            persistUploadState({
-              uploadKey,
-              isUploading: true,
-              selectedCount: files.length,
-              uploadProgress: percent,
-              activeFileName: file.name,
-              activeFileSize: file.size,
-              loadedBytes: loaded,
-              totalBytes: total,
-              updatedAt: Date.now(),
-            });
-          });
-          
-          setUploadProgress(100);
-          
-          await new Promise(resolve => setTimeout(resolve, 300));
-          
-          toast({
-            title:"success",
-            description:`${files.length} file${files.length > 1 ? 's' : ''} uploaded successfully`,
-            variant:"success",
-          })
-          router.refresh();
+              setUploadProgress(currentPercent);
+              setLoadedBytes(currentLoadedBytes);
+              setTotalBytes(currentTotalBytes);
+
+              setUploadSessionState({
+                uploadKey,
+                phase: 'uploading',
+                isUploading: true,
+                selectedCount: files.length,
+                uploadProgress: currentPercent,
+                activeFileName: item.file.name,
+                activeFileSize: item.file.size,
+                loadedBytes: currentLoadedBytes,
+                totalBytes: currentTotalBytes,
+                updatedAt: Date.now(),
+              });
+            },
+            uploadAbortControllerRef.current.signal,
+          );
+
+          void uploadedDocument;
+
+          completedBytes += item.file.size;
+          updateFileUpload(item.id, (current) => ({
+            ...current,
+            status: 'uploaded',
+            progress: 100,
+            loadedBytes: item.file.size,
+            totalBytes: item.file.size,
+          }));
+        } catch (error) {
+          if (error instanceof DOMException && error.name === 'AbortError') {
+            updateFileUpload(item.id, (current) => ({
+              ...current,
+              status: 'canceled',
+              progress: 0,
+              loadedBytes: 0,
+              totalBytes: item.file.size,
+            }));
+            canceledFileIdsRef.current.add(item.id);
+            continue;
+          }
+
+          throw error;
+        }
+      }
+
+      const finalQueue = getUploadQueueState(uploadKey) ?? initialFileUploads;
+      const uploadedFiles = finalQueue.filter((entry) => entry.status === 'uploaded').length;
+      const canceledFiles = finalQueue.filter((entry) => entry.status === 'canceled').length;
+
+      if (canceledFiles === 0) {
+        setUploadSessionState({
+          uploadKey,
+          phase: 'completed',
+          isUploading: false,
+          selectedCount: uploadedFiles,
+          uploadProgress: 100,
+          activeFileName: null,
+          activeFileSize: 0,
+          loadedBytes: completedBytes,
+          totalBytes: files.reduce((sum, file) => sum + file.size, 0),
+          updatedAt: Date.now(),
+        });
+
+        if (isMountedRef.current) {
           setSelectedCount(0);
           setUploading(false);
-
-          persistUploadState({
-            uploadKey,
-            isUploading: false,
-            selectedCount: 0,
-            uploadProgress: 100,
-            activeFileName: null,
-            activeFileSize: 0,
-            loadedBytes: 0,
-            totalBytes: 0,
-            updatedAt: Date.now(),
-          });
         }
-        catch (e: unknown) {
-          console.error("File upload error:", e); 
-          if (e instanceof Error) {
-            toast({
-              title: 'Error',
-              description : `File upload failed: ${e.message} try again later`,
-              variant:"destructive"
-            })
-          } else {
-            toast({
-              title: 'Error',
-              description : "File upload failed due to an unknown error",
-              variant:"destructive"
-            })
-          }
+      } else {
+        clearUploadSessionState(uploadKey);
+
+        if (isMountedRef.current) {
           setUploading(false);
-
-          persistUploadState({
-            uploadKey,
-            isUploading: false,
-            selectedCount: 0,
-            uploadProgress: 0,
-            activeFileName: null,
-            activeFileSize: 0,
-            loadedBytes: 0,
-            totalBytes: 0,
-            updatedAt: Date.now(),
-          });
-        } finally {
-          setActiveFileName(null);
-          setLoadedBytes(0);
-          setTotalBytes(0);
-          setUploadProgress(0);
         }
-        
+
+        if (uploadedFiles > 0) {
+          toast({
+            title: 'Partial upload',
+            description: `${uploadedFiles} file${uploadedFiles > 1 ? 's' : ''} uploaded, ${canceledFiles} canceled.`,
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: 'Canceled',
+            description: 'Upload canceled.',
+            variant: 'destructive',
+          });
+        }
+      }
+
+      clearInterruptedUpload();
+      uploadAbortControllerRef.current = null;
+    } catch (e: unknown) {
+      const wasCanceled = e instanceof DOMException && e.name === 'AbortError';
+
+      if (wasCanceled) {
+        toast({
+          title: 'Canceled',
+          description: 'Upload canceled.',
+          variant: 'destructive',
+        });
+      } else if (e instanceof Error) {
+        toast({
+          title: 'Error',
+          description: `File upload failed: ${e.message} try again later`,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: 'File upload failed due to an unknown error',
+          variant: 'destructive',
+        });
+      }
+
+      if (isMountedRef.current) {
+        setUploading(false);
+      }
+
+      clearInterruptedUpload();
+      clearUploadSessionState(uploadKey);
+
+      uploadAbortControllerRef.current = null;
+    } finally {
+      if (!isMountedRef.current) {
+        return;
+      }
+
+      setActiveFileName(null);
+      setLoadedBytes(0);
+      setTotalBytes(0);
+      setUploadProgress(0);
+    }
   }
+
+  const handleCancelFile = (fileId: string) => {
+    const fileItem = uploadQueue.find((item) => item.id === fileId);
+
+    if (!fileItem) {
+      return;
+    }
+
+    if (fileItem.status === 'uploading') {
+      uploadAbortControllerRef.current?.abort();
+      return;
+    }
+
+    canceledFileIdsRef.current.add(fileId);
+
+    updateFileUpload(fileId, (current) => ({ ...current, status: 'canceled', progress: 0 }));
+  };
 
   return (
     <Card className="overflow-hidden border-border/50 bg-gradient-to-br from-card via-card/95 to-card/90 shadow-lg shadow-black/20 backdrop-blur-xl rounded-xl">
@@ -288,7 +500,7 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
        <div
          className={`rounded-[1.25rem] border border-dashed p-4 transition-colors sm:p-5 ${
            isDragging ? 'border-blue-500 bg-blue-500/10' : 'border-border/70 bg-background/60'
-         } ${isUploading ? 'pointer-events-none opacity-80' : ''}`}
+         } ${isUploading ? 'opacity-80' : ''}`}
          onDragOver={handleDragOver}
          onDragLeave={handleDragLeave}
          onDrop={handleDrop}
@@ -316,22 +528,52 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
            <div className="flex items-center justify-between gap-3 text-sm">
              <span className="font-medium">Uploading files</span>
              <div className="flex items-center gap-2 text-muted-foreground">
-               {activeFileSize > 0 && (
-                 <span className="text-xs">{formatBytes(activeFileSize)}</span>
-               )}
                <span>{uploadProgress}%</span>
              </div>
            </div>
-           <div className="h-2 overflow-hidden rounded-full bg-muted">
-             <div
-               className="h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300 ease-out"
-               style={{ width: `${uploadProgress}%` }}
-             />
+           <div className='space-y-2'>
+             {uploadQueue.map((item) => {
+               const isActive = item.status === 'uploading';
+               const isDone = item.status === 'uploaded';
+               const isCanceled = item.status === 'canceled';
+
+               return (
+                 <div key={item.id} className='rounded-2xl border border-border/70 bg-background/80 p-3'>
+                   <div className='flex items-start justify-between gap-3'>
+                     <div className='min-w-0'>
+                       <p className='truncate text-sm font-medium'>{item.file.name}</p>
+                       <p className='text-xs text-muted-foreground'>{formatBytes(item.file.size)}</p>
+                     </div>
+                     <div className='flex items-center gap-2'>
+                       <span className={`rounded-full px-2 py-1 text-[11px] font-medium ${isDone ? 'bg-emerald-500/15 text-emerald-500' : isCanceled ? 'bg-muted text-muted-foreground' : isActive ? 'bg-blue-500/15 text-blue-500' : 'bg-amber-500/15 text-amber-500'}`}>
+                         {isDone ? 'Uploaded' : isCanceled ? 'Canceled' : isActive ? 'Uploading' : 'Queued'}
+                       </span>
+                       {(isActive || item.status === 'queued') ? (
+                         <Button
+                           type='button'
+                           variant='outline'
+                           size='sm'
+                           className='h-8 rounded-full border-border/70 bg-background/80 px-3'
+                           onClick={() => handleCancelFile(item.id)}
+                         >
+                           <X className='h-3.5 w-3.5' />
+                           {isActive ? 'Cancel' : 'Remove'}
+                         </Button>
+                       ) : null}
+                     </div>
+                   </div>
+                   <div className='mt-3 h-2 overflow-hidden rounded-full bg-muted'>
+                     <div
+                       className={`h-full rounded-full transition-all duration-300 ease-out ${isDone ? 'bg-emerald-500' : isCanceled ? 'bg-muted-foreground/50' : 'bg-gradient-to-r from-blue-500 to-purple-500'}`}
+                       style={{ width: `${isDone ? 100 : item.progress}%` }}
+                     />
+                   </div>
+                 </div>
+               );
+             })}
            </div>
            <div className='flex items-center justify-between text-xs text-muted-foreground'>
-             <p>
-               {activeFileName ? `Working on ${activeFileName}` : 'Preparing your files for upload'}
-             </p>
+             <p>{activeFileName ? `Working on ${activeFileName}` : 'Preparing your files for upload'}</p>
              {loadedBytes > 0 && totalBytes > 0 && (
                <span className='font-medium text-foreground'>
                  {formatBytes(loadedBytes)} / {formatBytes(totalBytes)}
@@ -344,7 +586,7 @@ const UploadCard = ({uploadKey}:{uploadKey:string}) => {
              </p>
            ) : null}
            <p className='text-xs text-muted-foreground'>
-             Avoid hard refresh during upload. Progress UI is restored on route/tab changes.
+             Use the cancel button on each file row to stop or remove that file.
            </p>
          </div>
        ) : null}

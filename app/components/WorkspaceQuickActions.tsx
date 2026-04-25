@@ -1,42 +1,15 @@
 "use client";
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { BarChart3, FilePlus2, FileText, Link2, UploadCloud } from 'lucide-react';
 
 import { Button } from '@/app/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
-const hideCodeStorageKey = (workspaceKey: string) => `sanityhub:hide-code-space:${workspaceKey}`;
-
 const WorkspaceQuickActions = ({ workspaceKey, currentSpace }: { workspaceKey: string; currentSpace: 'storage' | 'code' }) => {
   const { toast } = useToast();
   const [isCopyingLink, setCopyingLink] = useState(false);
-  const [isCodeSpaceHidden, setCodeSpaceHidden] = useState(false);
-
-  useEffect(() => {
-    const syncHideState = () => {
-      try {
-        const raw = window.localStorage.getItem(hideCodeStorageKey(workspaceKey));
-        setCodeSpaceHidden(raw === '1');
-      } catch {
-        setCodeSpaceHidden(false);
-      }
-    };
-
-    const onHideCodeSpaceChange = (event: Event) => {
-      const customEvent = event as CustomEvent<{ workspaceKey?: string }>;
-      if (customEvent.detail?.workspaceKey && customEvent.detail.workspaceKey !== workspaceKey) return;
-      syncHideState();
-    };
-
-    syncHideState();
-    window.addEventListener('sanityhub:hide-code-space-change', onHideCodeSpaceChange);
-
-    return () => {
-      window.removeEventListener('sanityhub:hide-code-space-change', onHideCodeSpaceChange);
-    };
-  }, [workspaceKey]);
 
   const copyText = async (value: string, label: string) => {
     try {
